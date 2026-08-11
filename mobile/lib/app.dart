@@ -26,4 +26,3 @@ class _KidsGameAppState extends State<KidsGameApp> {
         home: HomeScreen(services: widget.services),
       );
 }
-

@@ -14,4 +14,3 @@ Future<void> main() async {
   final services = await AppServices.create(AppConfig.fromEnvironment());
   runApp(KidsGameApp(services: services));
 }
-

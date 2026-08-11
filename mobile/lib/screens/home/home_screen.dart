@@ -10,7 +10,9 @@ class HomeScreen extends StatelessWidget {
 
   void _open(BuildContext context, GameDefinition game) {
     services.analytics.track('game_opened', gameId: game.id);
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => game.builder(services))).then((_) => services.analytics.track('game_closed', gameId: game.id));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => game.builder(services)))
+        .then((_) => services.analytics.track('game_closed', gameId: game.id));
   }
 
   @override
@@ -22,14 +24,21 @@ class HomeScreen extends StatelessWidget {
         ),
         body: SafeArea(
           child: LayoutBuilder(builder: (context, constraints) {
-            final columns = constraints.maxWidth > 700 ? 3 : constraints.maxWidth > 430 ? 2 : 1;
+            final columns = constraints.maxWidth > 700
+                ? 3
+                : constraints.maxWidth > 430
+                    ? 2
+                    : 1;
             return GridView.count(
               padding: const EdgeInsets.all(20),
               crossAxisCount: columns,
               mainAxisSpacing: 18,
               crossAxisSpacing: 18,
               childAspectRatio: columns == 1 ? 1.8 : 1.05,
-              children: games.map((game) => _GameCard(game: game, onTap: () => _open(context, game))).toList(),
+              children: games
+                  .map((game) =>
+                      _GameCard(game: game, onTap: () => _open(context, game)))
+                  .toList(),
             );
           }),
         ),
@@ -61,14 +70,23 @@ class _GameCardState extends State<_GameCard> {
             child: Semantics(
               label: widget.game.label,
               button: true,
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                TweenAnimationBuilder<double>(tween: Tween(begin: .9, end: 1.05), duration: const Duration(milliseconds: 900), curve: Curves.elasticOut, builder: (_, value, child) => Transform.scale(scale: value, child: child), child: Text(widget.game.icon, style: const TextStyle(fontSize: 92))),
-                const SizedBox(height: 4),
-                Text(widget.game.label, style: Theme.of(context).textTheme.headlineLarge),
-              ]),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TweenAnimationBuilder<double>(
+                        tween: Tween(begin: .9, end: 1.05),
+                        duration: const Duration(milliseconds: 900),
+                        curve: Curves.elasticOut,
+                        builder: (_, value, child) =>
+                            Transform.scale(scale: value, child: child),
+                        child: Text(widget.game.icon,
+                            style: const TextStyle(fontSize: 92))),
+                    const SizedBox(height: 4),
+                    Text(widget.game.label,
+                        style: Theme.of(context).textTheme.headlineLarge),
+                  ]),
             ),
           ),
         ),
       );
 }
-

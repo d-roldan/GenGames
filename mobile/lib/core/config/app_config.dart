@@ -5,8 +5,9 @@ class AppConfig {
   final String apiUrl;
 
   factory AppConfig.fromEnvironment() => const AppConfig(
-        environment: String.fromEnvironment('APP_ENV', defaultValue: 'development'),
-        apiUrl: String.fromEnvironment('API_URL', defaultValue: 'http://localhost:8000/api/v1'),
+        environment:
+            String.fromEnvironment('APP_ENV', defaultValue: 'development'),
+        apiUrl: String.fromEnvironment('API_URL',
+            defaultValue: 'http://localhost:8000/api/v1'),
       );
 }
-
