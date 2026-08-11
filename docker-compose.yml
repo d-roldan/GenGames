@@ -1,0 +1,54 @@
+name: gengames-development
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gen_games_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-gen_games}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gen_games} -d ${POSTGRES_DB:-gen_games_dev}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [development]
+
+  backend:
+    build: ./backend
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - content_dev_data:/data/content
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && python -m app.scripts.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    networks: [development]
+
+  admin:
+    build:
+      context: ./admin
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "3000:3000"
+    depends_on: [backend]
+    networks: [development]
+
+volumes:
+  postgres_dev_data:
+    name: gengames_postgres_dev
+  content_dev_data:
+    name: gengames_content_dev
+
+networks:
+  development:
+    name: gengames_development

@@ -1,0 +1,11 @@
+{$PRODUCTION_API_DOMAIN} {
+    encode zstd gzip
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    reverse_proxy backend-production:8000
+}
+{$PRODUCTION_ADMIN_DOMAIN} {
+    encode zstd gzip
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    reverse_proxy admin-production:3000
+}
+

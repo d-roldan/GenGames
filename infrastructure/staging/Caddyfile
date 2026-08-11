@@ -1,0 +1,9 @@
+{$STAGING_API_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy backend-staging:8000
+}
+{$STAGING_ADMIN_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy admin-staging:3000
+}
+

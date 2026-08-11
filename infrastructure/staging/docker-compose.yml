@@ -1,0 +1,50 @@
+name: gengames-staging
+services:
+  postgres-staging:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: ../../.env.staging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [postgres_staging_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [staging_private]
+  backend-staging:
+    build: ../../backend
+    restart: unless-stopped
+    env_file: ../../.env.staging
+    volumes: [content_staging_data:/data/content]
+    depends_on:
+      postgres-staging: {condition: service_healthy}
+    command: sh -c "alembic upgrade head && python -m app.scripts.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    networks: [staging_private, staging_edge]
+  admin-staging:
+    build:
+      context: ../../admin
+      args: {NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL}"}
+    restart: unless-stopped
+    networks: [staging_edge]
+  proxy-staging:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    env_file: ../../.env.staging
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_staging_data:/data
+    depends_on: [backend-staging, admin-staging]
+    networks: [staging_edge]
+volumes:
+  postgres_staging_data: {name: gengames_postgres_staging}
+  content_staging_data: {name: gengames_content_staging}
+  caddy_staging_data: {name: gengames_caddy_staging}
+networks:
+  staging_private: {name: gengames_staging_private, internal: true}
+  staging_edge: {name: gengames_staging_edge}
+

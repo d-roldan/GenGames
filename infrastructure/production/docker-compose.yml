@@ -1,0 +1,50 @@
+name: gengames-production
+services:
+  postgres-production:
+    image: postgres:17-alpine
+    restart: always
+    env_file: ../../.env.production
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [postgres_production_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [production_private]
+  backend-production:
+    build: ../../backend
+    restart: always
+    env_file: ../../.env.production
+    volumes: [content_production_data:/data/content]
+    depends_on:
+      postgres-production: {condition: service_healthy}
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+    networks: [production_private, production_edge]
+  admin-production:
+    build:
+      context: ../../admin
+      args: {NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL}"}
+    restart: always
+    networks: [production_edge]
+  proxy-production:
+    image: caddy:2.10-alpine
+    restart: always
+    env_file: ../../.env.production
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_production_data:/data
+    depends_on: [backend-production, admin-production]
+    networks: [production_edge]
+volumes:
+  postgres_production_data: {name: gengames_postgres_production}
+  content_production_data: {name: gengames_content_production}
+  caddy_production_data: {name: gengames_caddy_production}
+networks:
+  production_private: {name: gengames_production_private, internal: true}
+  production_edge: {name: gengames_production_edge}
+
