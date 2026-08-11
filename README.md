@@ -35,6 +35,18 @@ flutter devices
 flutter run --flavor development -d DEVICE_ID --dart-define=APP_ENV=development --dart-define=API_URL=http://IP_DE_LA_PC:8000/api/v1
 ```
 
+### Preview en Chrome
+
+```powershell
+Set-Location mobile
+flutter build web --dart-define=APP_ENV=development --dart-define=API_URL=http://localhost:8000/api/v1
+Set-Location ..
+docker compose --profile preview up -d web-preview
+```
+
+Abra <http://localhost:5173>. Este preview usa SQLite WebAssembly y conserva la
+experiencia offline en el almacenamiento del navegador.
+
 En un teléfono físico, la PC y el teléfono deben compartir red y el firewall
 debe permitir el puerto 8000. No se necesita Google Play durante desarrollo.
 

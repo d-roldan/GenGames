@@ -43,6 +43,15 @@ services:
     depends_on: [backend]
     networks: [development]
 
+  web-preview:
+    image: nginx:1.29-alpine
+    profiles: [preview]
+    ports:
+      - "5173:80"
+    volumes:
+      - ./mobile/build/web:/usr/share/nginx/html:ro
+    networks: [development]
+
 volumes:
   postgres_dev_data:
     name: gengames_postgres_dev

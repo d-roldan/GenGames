@@ -1,16 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/services/app_services.dart';
+import 'core/storage/database_setup.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
+  configureDatabaseFactory();
   final services = await AppServices.create(AppConfig.fromEnvironment());
   runApp(KidsGameApp(services: services));
 }
