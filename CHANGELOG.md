@@ -1,0 +1,42 @@
+# Historial de versiones
+
+## v0.1.0 — Primera versión funcional
+
+GenGames es una plataforma infantil offline-first cuyo producto inicial se
+presenta como KidsGame. Esta versión reúne una aplicación jugable, una API y
+un panel de administración en un monorepo preparado para desarrollo local.
+
+### Aplicación infantil
+
+- Tres juegos independientes y funcionales: Gatito, Dibujar y Animales.
+- Interfaz visual simple, con controles grandes y navegación adecuada para
+  niños pequeños.
+- Funcionamiento offline con instalación anónima, estadísticas locales y cola
+  de eventos pendiente de sincronización.
+- Área para adultos protegida mediante pulsación prolongada y desafío.
+- Soporte inicial para Android y Windows, además de preview jugable en Chrome.
+- Persistencia web mediante SQLite WebAssembly e IndexedDB.
+
+### Plataforma y contenido
+
+- API REST desarrollada con FastAPI y almacenamiento PostgreSQL.
+- Migraciones de base de datos, carga de datos iniciales y documentación
+  OpenAPI.
+- Sincronización de eventos offline y distribución de paquetes de contenido
+  con validación de checksum e instalación atómica.
+- Panel administrativo autenticado para gestionar el contenido.
+
+### Desarrollo y calidad
+
+- Entorno reproducible con Docker Compose para API, PostgreSQL, panel y preview
+  web.
+- Configuraciones separadas para desarrollo, staging y producción.
+- Pruebas automatizadas de backend, panel, almacenamiento, contenido, registro
+  de juegos y acceso de adultos.
+- Análisis estático y flujos de integración y despliegue continuo.
+
+### Alcance de esta entrega
+
+Es una primera versión funcional orientada a pruebas locales. El preview web se
+sirve en `http://localhost:5173`; el empaquetado y la distribución final para
+Windows se abordarán en una versión posterior.
