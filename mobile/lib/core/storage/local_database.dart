@@ -1,17 +1,14 @@
 import 'dart:convert';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
+import 'database_path.dart';
 
 class LocalDatabase {
   LocalDatabase._(this.db);
   final Database db;
 
   static Future<LocalDatabase> open({String? path}) async {
-    final actualPath = path ??
-        p.join(
-            (await getApplicationSupportDirectory()).path, 'gengames.sqlite3');
+    final actualPath = path ?? await defaultDatabasePath();
     final database =
         await openDatabase(actualPath, version: 1, onCreate: (db, _) async {
       await db.execute(
