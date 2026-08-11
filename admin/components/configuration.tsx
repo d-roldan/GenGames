@@ -1,0 +1,5 @@
+"use client";
+import { FormEvent, useEffect, useState } from "react"; import { api } from "@/lib/api";
+type Config = {key: string; value: Record<string, unknown>};
+export function Configuration({token}: {token: string}) { const [items, setItems] = useState<Config[]>([]); const load = () => api<Config[]>("/admin/config", token).then(setItems); useEffect(() => { void load(); }, [token]); async function save(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); const key = String(form.get("key")); const value = JSON.parse(String(form.get("value"))); await api(`/admin/config/${key}`, token, {method: "PUT", body: JSON.stringify({value})}); event.currentTarget.reset(); await load(); } return <section className="panel"><h2>Remote config</h2><form className="inline-form" onSubmit={save}><input name="key" required placeholder="clave"/><input name="value" required defaultValue="{}" placeholder="JSON"/><button className="primary">Guardar</button></form>{items.map(item => <div className="config-row" key={item.key}><strong>{item.key}</strong><code>{JSON.stringify(item.value)}</code></div>)}</section>; }
+
