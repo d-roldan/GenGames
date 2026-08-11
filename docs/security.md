@@ -1,8 +1,26 @@
 # Seguridad
 
-Administración usa hash Argon2 y tokens JWT de corta duración. Producción exige
-HTTPS, secretos externos, CORS explícito, límites de carga, logs sin datos
-personales, validación Pydantic y PostgreSQL no publicado. Rotar credenciales,
-actualizar imágenes y dependencias, limitar intentos en el proxy y auditar altas
-administrativas.
+## Controles implementados
 
+- contraseñas administrativas con el hash recomendado por `pwdlib`;
+- JWT HS256 con tipo `admin` y vencimiento configurable, 60 minutos por defecto;
+- validación Pydantic y eventos idempotentes;
+- CORS configurable por entorno;
+- archivos de contenido limitados a 100 MB y checksum SHA-256;
+- PostgreSQL interno en staging/producción y HTTPS terminado por Caddy;
+- secretos reales y datos persistentes excluidos de Git.
+
+## Requisitos antes de producción
+
+- generar secretos largos en un gestor y rotarlos; nunca usar ejemplos;
+- migrar el token del panel desde `sessionStorage` a cookie HttpOnly mediante BFF;
+- agregar límites de tasa para login, eventos y uploads;
+- registrar y auditar cambios administrativos sin datos infantiles;
+- restringir tipos de archivo, validar contenido y aplicar cabeceras defensivas;
+- automatizar actualización y escaneo de dependencias e imágenes;
+- probar backup, restauración, revocación de acceso y respuesta a incidentes;
+- revisar TLS, CORS y exposición de puertos en el host real.
+
+El desafío del área adulta es una barrera de UX, no autenticación de seguridad.
+Las definiciones de infraestructura no implican que estos controles operativos ya
+estén desplegados.

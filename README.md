@@ -3,10 +3,13 @@
 Monorepo de una plataforma infantil offline-first. **GenGames** es el nombre del
 repositorio y **KidsGame** el nombre visible inicial del producto.
 
+Para comprender la visión, el estado real, las limitaciones y el rumbo del
+producto, comience por [docs/project-context.md](docs/project-context.md).
+
 ## Inicio rápido
 
-Requisitos: Git, Docker Desktop, Node.js 22+ y Flutter estable con soporte para
-Windows y Android.
+Requisitos: Git, Docker Desktop, Node.js 22+, Chrome y Flutter estable con
+soporte para Windows, Android y Web.
 
 ```powershell
 Copy-Item .env.development.example .env
@@ -45,7 +48,8 @@ docker compose --profile preview up -d web-preview
 ```
 
 Abra <http://localhost:5173>. Este preview usa SQLite WebAssembly y conserva la
-experiencia offline en el almacenamiento del navegador.
+experiencia offline en IndexedDB. Si Chrome conserva una compilación anterior,
+cierre la pestaña o use `Ctrl+Shift+R`.
 
 En un teléfono físico, la PC y el teléfono deben compartir red y el firewall
 debe permitir el puerto 8000. No se necesita Google Play durante desarrollo.
@@ -62,7 +66,8 @@ Set-Location ..\mobile; flutter test; flutter analyze
 
 Los archivos `.env*` reales, claves de firma, bases, artefactos y contenido
 descargado no se versionan. Consulte [docs/development.md](docs/development.md),
-[docs/architecture.md](docs/architecture.md) y [docs/deployment.md](docs/deployment.md).
+[docs/architecture.md](docs/architecture.md), [docs/testing.md](docs/testing.md) y
+[docs/deployment.md](docs/deployment.md).
 
 ## Flujo Git
 
