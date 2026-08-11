@@ -69,7 +69,7 @@ class _ParentScreenState extends State<ParentScreen> {
               const Card(
                   child: ListTile(
                       leading: Icon(Icons.info_outline),
-                      title: Text('KidsGame 0.1.0'),
+                      title: Text('KidsGame 0.1.1'),
                       subtitle: Text('Entorno configurado en la compilación'))),
               const SizedBox(height: 16),
               const Text('Juegos usados',

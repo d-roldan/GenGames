@@ -4,7 +4,7 @@ from uuid import uuid4
 def test_health_and_defaults(client):
     assert client.get("/api/v1/health").json()["status"] == "ok"
     assert len(client.get("/api/v1/games").json()) == 3
-    assert client.get("/api/v1/version?platform=android").json()["latest_version"] == "0.1.0"
+    assert client.get("/api/v1/version?platform=android").json()["latest_version"] == "0.1.1"
 
 
 def test_register_and_idempotent_event_batch(client):
@@ -20,4 +20,3 @@ def test_register_and_idempotent_event_batch(client):
 def test_event_requires_registered_installation(client):
     response = client.post("/api/v1/events", json={"client_event_id": str(uuid4()), "installation_uuid": str(uuid4()), "event_type": "app_opened", "created_at": "2026-01-01T12:00:00Z"})
     assert response.status_code == 409
-

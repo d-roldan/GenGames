@@ -1,5 +1,24 @@
 # Historial de versiones
 
+## v0.1.1 — Contexto y documentación operativa
+
+Esta actualización compatible convierte la documentación en una fuente de verdad
+útil para usuarios y asistentes de IA, sin cambiar el comportamiento de los
+minijuegos.
+
+### Cambios
+
+- Nuevo `docs/project-context.md` con visión, principios, arquitectura resumida,
+  estado implementado, validaciones, limitaciones y próximos pasos.
+- Revisión completa del README y de la documentación de aplicación, API, panel,
+  almacenamiento, sincronización, contenido, entornos, despliegue, pruebas,
+  seguridad, privacidad, Git y Google Play.
+- Separación explícita entre funciones implementadas, funciones validadas y
+  preparación aún pendiente.
+- Corrección de `CONTENT_PUBLIC_URL` en todos los ejemplos de entorno para usar
+  la ruta pública real `/api/v1/content`.
+- Alineación de la versión del monorepo, Flutter, backend y panel en `0.1.1`.
+
 ## v0.1.0 — Primera versión funcional
 
 GenGames es una plataforma infantil offline-first cuyo producto inicial se

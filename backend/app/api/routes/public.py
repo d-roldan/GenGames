@@ -85,6 +85,5 @@ def remote_config(db: Session = Depends(get_db)) -> dict:
 def version(platform: str = Query(default="android"), db: Session = Depends(get_db)):
     item = db.scalar(select(AppVersion).where(AppVersion.platform == platform))
     if not item:
-        return VersionOut(platform=platform, version="0.1.0", minimum_supported_version="0.1.0", latest_version="0.1.0")
+        return VersionOut(platform=platform, version="0.1.1", minimum_supported_version="0.1.0", latest_version="0.1.1")
     return VersionOut(platform=item.platform, version=item.version, minimum_supported_version=item.minimum_supported_version, latest_version=item.latest_version)
-

@@ -15,7 +15,7 @@ class SyncService {
       final installationId = await database.installationId;
       await api.post('/installations', {
         'installation_uuid': installationId,
-        'app_version': '0.1.0',
+        'app_version': '0.1.1',
         'platform': 'flutter'
       });
       final rows = await database.pending();

@@ -9,7 +9,7 @@ personas y asistentes de IA; no reemplaza la documentación técnica enlazada.
 - **Repositorio:** GenGames.
 - **Producto visible inicial:** KidsGame.
 - **Repositorio remoto:** <https://github.com/d-roldan/GenGames>.
-- **Versión publicada:** `v0.1.0` (`mobile/pubspec.yaml`: `0.1.0+1`).
+- **Versión publicada:** `v0.1.1` (`mobile/pubspec.yaml`: `0.1.1+2`).
 - **Público principal:** niños de aproximadamente 3 años y sus adultos
   responsables.
 
@@ -33,7 +33,7 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
 6. **Entornos separados:** development, staging y production no comparten bases,
    volúmenes ni secretos.
 
-## Estado actual: v0.1.0
+## Estado actual: v0.1.1
 
 ### Implementado
 
@@ -58,7 +58,7 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
   desde la API administrativa.
 - El preview web abre en Chrome en `http://localhost:5173` y permite entrar a los
   juegos. Se comprobó específicamente el menú y Gatito.
-- El análisis estático de Flutter y sus siete tests pasan en la versión `v0.1.0`.
+- El análisis estático de Flutter y sus siete tests pasan en la versión `v0.1.1`.
 - Las suites de backend y panel y el build del panel pasaron durante la
   preparación de la versión.
 
@@ -85,8 +85,8 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
   antes de probar descargas reales.
 - La configuración remota y la política de versiones están expuestas por la API
   y el panel, pero aún no modifican activamente la experiencia infantil.
-- La versión `0.1.0` aparece en algunos puntos del cliente además de
-  `pubspec.yaml`; debe centralizarse antes de la próxima versión.
+- La versión todavía se actualiza en más de un componente del monorepo; conviene
+  automatizar su propagación antes de una release funcional mayor.
 - La autenticación administrativa usa Bearer JWT en `sessionStorage`. Para
   producción se recomienda migrar a cookie HttpOnly mediante un BFF.
 - El reintento actual es periódico, no un backoff exponencial persistente.
