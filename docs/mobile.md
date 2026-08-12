@@ -12,7 +12,8 @@ La pantalla de inicio muestra cuatro tarjetas grandes:
   con efectos originales generados localmente.
 - **Dibujar:** lienzo táctil, paleta de colores, grosores, goma y limpieza. No
   guarda dibujos todavía.
-- **Animales:** perro, gato, vaca, caballo, pato y oveja con animación y sonido.
+- **Animales:** perro, gato, vaca, caballo, pato y oveja con animación y
+  grabaciones reales disponibles sin conexión.
 - **Piano Tiles:** biblioteca de tres canciones originales offline —pop, rock y
   electropop— con mapas sincronizados, BPM y velocidades diferentes. Incluye
   notas simples, dobles y sostenidas, juicio de precisión, combo, exactitud,
@@ -31,7 +32,8 @@ demás.
   la petición HTTP confirma la disponibilidad real.
 - `ContentService` consulta manifests e instala packs verificados en plataformas
   con sistema de archivos nativo.
-- `AudioService` genera efectos PCM originales localmente.
+- `AudioService` reproduce las grabaciones reales del juego Animales y genera
+  localmente los efectos PCM originales de los demás juegos.
 - `UpdateService` consulta versiones, descarga el APK Android con progreso y
   solicita al canal nativo que abra el instalador oficial.
 

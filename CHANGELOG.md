@@ -1,5 +1,14 @@
 # Historial de versiones
 
+## v0.3.1 — Sonidos reales de animales
+
+- Perro, gato, vaca, caballo, pato y oveja ahora reproducen grabaciones reales
+  en lugar de aproximaciones sintetizadas.
+- Los seis sonidos permanecen incluidos en la aplicación y funcionan sin
+  conexión.
+- Se documentan la procedencia, autoría y licencia de cada grabación.
+- Una prueba automatizada verifica que cada animal tenga un asset Ogg válido.
+
 ## v0.3.0 — Piano Tiles rítmico
 
 - Biblioteca con tres canciones originales offline de pop, rock y electropop,
