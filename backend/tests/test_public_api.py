@@ -1,10 +1,38 @@
 from uuid import uuid4
+from app.core.config import settings
 
 
 def test_health_and_defaults(client):
     assert client.get("/api/v1/health").json()["status"] == "ok"
     assert len(client.get("/api/v1/games").json()) == 3
-    assert client.get("/api/v1/version?platform=android").json()["latest_version"] == "0.1.1"
+    assert client.get("/api/v1/version?platform=android").json()["latest_version"] == "0.1.3"
+
+
+def test_android_download_is_absent_when_no_release_is_published(client, tmp_path):
+    previous = settings.android_apk_path
+    settings.android_apk_path = tmp_path / "missing.apk"
+    try:
+        response = client.get("/api/v1/app/android/download")
+        assert response.status_code == 404
+    finally:
+        settings.android_apk_path = previous
+
+
+def test_android_release_metadata_and_download(client, tmp_path):
+    previous = settings.android_apk_path
+    apk = tmp_path / "GenGames.apk"
+    apk.write_bytes(b"development apk")
+    settings.android_apk_path = apk
+    try:
+        metadata = client.get("/api/v1/version?platform=android").json()
+        assert metadata["download_url"] == "/api/v1/app/android/download"
+        assert metadata["download_size"] == len(b"development apk")
+        download = client.get(metadata["download_url"])
+        assert download.status_code == 200
+        assert download.content == b"development apk"
+        assert download.headers["content-type"] == "application/vnd.android.package-archive"
+    finally:
+        settings.android_apk_path = previous
 
 
 def test_register_and_idempotent_event_batch(client):

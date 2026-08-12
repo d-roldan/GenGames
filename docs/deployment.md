@@ -16,6 +16,13 @@ workflows actuales son de CI y no despliegan.
    iniciar.
 7. Verificar HTTPS, `/api/v1/health`, login administrativo y un flujo de evento.
 
+Si el despliegue incluye una aplicación Android, publicar y verificar su APK/AAB
+antes de cambiar la política de versiones. Una metadata adelantada puede hacer
+que clientes descarguen el artefacto equivocado. Development usa el mecanismo
+descrito en [Actualizaciones Android](android-updates.md); staging y producción
+deben reproducir el mismo orden con HTTPS, almacenamiento duradero y firma de
+release administrada.
+
 Caddy publica únicamente API y panel. PostgreSQL permanece en la red interna; el
 contenido utiliza un volumen separado. Staging y producción nunca comparten
 volúmenes o bases.

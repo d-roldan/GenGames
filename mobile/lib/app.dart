@@ -3,15 +3,15 @@ import 'core/services/app_services.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/home/home_screen.dart';
 
-class KidsGameApp extends StatefulWidget {
-  const KidsGameApp({super.key, required this.services});
+class GenGamesApp extends StatefulWidget {
+  const GenGamesApp({super.key, required this.services});
   final AppServices services;
 
   @override
-  State<KidsGameApp> createState() => _KidsGameAppState();
+  State<GenGamesApp> createState() => _GenGamesAppState();
 }
 
-class _KidsGameAppState extends State<KidsGameApp> {
+class _GenGamesAppState extends State<GenGamesApp> {
   @override
   void dispose() {
     widget.services.dispose();
@@ -20,7 +20,7 @@ class _KidsGameAppState extends State<KidsGameApp> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'KidsGame',
+        title: 'GenGames',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.childFriendly,
         home: HomeScreen(services: widget.services),

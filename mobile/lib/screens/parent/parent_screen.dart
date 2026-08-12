@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/services/app_services.dart';
+import '../../core/config/app_version.dart';
+import '../../core/updates/update_dialog.dart';
 
 class ParentScreen extends StatefulWidget {
   const ParentScreen({super.key, required this.services});
@@ -24,6 +26,25 @@ class _ParentScreenState extends State<ParentScreen> {
   Future<void> _sync() async {
     await widget.services.sync.synchronize();
     setState(() => data = _load());
+  }
+
+  Future<void> _checkForUpdates() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final info = await widget.services.updates.check();
+      if (!mounted) return;
+      if (info == null) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('GenGames ya está actualizado.')),
+        );
+      } else {
+        await showUpdateDialog(context, widget.services.updates, info);
+      }
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No se pudo buscar actualizaciones.')),
+      );
+    }
   }
 
   @override
@@ -66,10 +87,18 @@ class _ParentScreenState extends State<ParentScreen> {
                       leading: const Icon(Icons.download_done),
                       title: const Text('Contenido instalado'),
                       subtitle: Text('${value.content.length} packs'))),
+              Card(
+                  child: ListTile(
+                      leading: const Icon(Icons.system_update),
+                      title: const Text('Buscar actualizaciones'),
+                      subtitle:
+                          const Text('Descargar e instalar una versión nueva'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: _checkForUpdates)),
               const Card(
                   child: ListTile(
                       leading: Icon(Icons.info_outline),
-                      title: Text('KidsGame 0.1.1'),
+                      title: Text('GenGames $currentAppVersion'),
                       subtitle: Text('Entorno configurado en la compilación'))),
               const SizedBox(height: 16),
               const Text('Juegos usados',

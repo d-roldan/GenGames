@@ -56,4 +56,6 @@ class VersionOut(BaseModel):
     version: str
     minimum_supported_version: str
     latest_version: str
+    download_url: str | None = None
+    download_size: int | None = None
 

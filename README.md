@@ -1,7 +1,7 @@
-# GenGames / KidsGame
+# GenGames
 
 Monorepo de una plataforma infantil offline-first. **GenGames** es el nombre del
-repositorio y **KidsGame** el nombre visible inicial del producto.
+repositorio y nombre visible del producto.
 
 Para comprender la visión, el estado real, las limitaciones y el rumbo del
 producto, comience por [docs/project-context.md](docs/project-context.md).
@@ -54,6 +54,19 @@ cierre la pestaña o use `Ctrl+Shift+R`.
 En un teléfono físico, la PC y el teléfono deben compartir red y el firewall
 debe permitir el puerto 8000. No se necesita Google Play durante desarrollo.
 
+### Actualizaciones Android por Wi-Fi
+
+GenGames busca una versión nueva al abrirse y también desde **Área para adultos
+> Buscar actualizaciones**. Los cambios de la aplicación Flutter se publican
+como un APK ARM64 con versión y build superiores; el backend anuncia la versión
+sólo después de verificar el artefacto. Android siempre exige la confirmación
+final del usuario.
+
+El procedimiento obligatorio está en
+[docs/android-updates.md](docs/android-updates.md). Toda actualización del
+cliente destinada al teléfono debe seguirlo para conservar firma, datos e
+identidad de la instalación.
+
 ### Pruebas
 
 ```powershell
@@ -67,7 +80,8 @@ Set-Location ..\mobile; flutter test; flutter analyze
 Los archivos `.env*` reales, claves de firma, bases, artefactos y contenido
 descargado no se versionan. Consulte [docs/development.md](docs/development.md),
 [docs/architecture.md](docs/architecture.md), [docs/testing.md](docs/testing.md) y
-[docs/deployment.md](docs/deployment.md).
+[docs/deployment.md](docs/deployment.md). Para Android, consulte también
+[docs/android-updates.md](docs/android-updates.md).
 
 ## Flujo Git
 
