@@ -91,7 +91,7 @@ def version(platform: str = Query(default="android"), db: Session = Depends(get_
     }
     item = db.scalar(select(AppVersion).where(AppVersion.platform == platform))
     if not item:
-        return VersionOut(platform=platform, version="0.2.1", minimum_supported_version="0.1.0", latest_version="0.2.1", **download_fields)
+        return VersionOut(platform=platform, version="0.3.0", minimum_supported_version="0.1.0", latest_version="0.3.0", **download_fields)
     return VersionOut(platform=item.platform, version=item.version, minimum_supported_version=item.minimum_supported_version, latest_version=item.latest_version, **download_fields)
 
 

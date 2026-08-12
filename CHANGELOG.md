@@ -1,5 +1,18 @@
 # Historial de versiones
 
+## v0.3.0 — Piano Tiles rítmico
+
+- Biblioteca con tres canciones originales offline de pop, rock y electropop,
+  cada una con identidad, BPM, dificultad y velocidad de aproximación propios.
+- Mapas de notas sincronizados con los golpes musicales en lugar de una
+  secuencia visual independiente del audio.
+- Nuevas notas dobles `×2` para tocar con dos dedos y notas largas identificadas
+  con una mano y la indicación **MANTENER**.
+- Evaluación de precisión `Perfect`, `Great`, `Good` y `Miss`, combo, exactitud,
+  progreso, récord por canción y puntos animados durante la interpretación.
+- El audio y el reloj de juego permanecen sincronizados; errar o dejar pasar una
+  nota rompe el combo pero la canción continúa hasta el final.
+
 ## v0.2.1 — Piano Tiles renovado
 
 - Flujo continuo con varias baldosas simultáneas, tres secciones y velocidad creciente.

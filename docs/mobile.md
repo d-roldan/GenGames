@@ -13,10 +13,11 @@ La pantalla de inicio muestra cuatro tarjetas grandes:
 - **Dibujar:** lienzo táctil, paleta de colores, grosores, goma y limpieza. No
   guarda dibujos todavía.
 - **Animales:** perro, gato, vaca, caballo, pato y oveja con animación y sonido.
-- **Piano Tiles:** cuatro carriles con varias baldosas en flujo continuo, pista
-  original offline y notas polifónicas por acierto. Incluye combo, precisión,
-  puntaje, récord y tres secciones cada vez más rápidas. Los errores dan
-  feedback y rompen el combo sin interrumpir la canción.
+- **Piano Tiles:** biblioteca de tres canciones originales offline —pop, rock y
+  electropop— con mapas sincronizados, BPM y velocidades diferentes. Incluye
+  notas simples, dobles y sostenidas, juicio de precisión, combo, exactitud,
+  puntaje animado y récord por canción. Los errores dan feedback y rompen el
+  combo sin interrumpir la música.
 
 Cada módulo se publica en el registro común `GameDefinition`. Agregar un juego
 requiere crear su pantalla y registrarlo, sin modificar la lógica interna de los

@@ -1,164 +1,247 @@
 import 'dart:math' as math;
 
-class PianoTile {
-  const PianoTile({required this.id, required this.lane, required this.y});
-
-  final int id;
-  final int lane;
-  final double y;
-
-  PianoTile copyWith({double? y}) =>
-      PianoTile(id: id, lane: lane, y: y ?? this.y);
-}
+import 'piano_song.dart';
 
 enum PianoGameStatus { ready, playing, songComplete }
+
+enum PianoNoteState { pending, holding, hit, missed }
+
+enum PianoJudgment { perfect, great, good, miss }
+
+class PianoRuntimeNote {
+  PianoRuntimeNote(this.beat);
+
+  final PianoBeatNote beat;
+  PianoNoteState state = PianoNoteState.pending;
+  PianoJudgment? judgment;
+  double? holdStartedAt;
+
+  bool get isActive =>
+      state == PianoNoteState.pending || state == PianoNoteState.holding;
+}
+
+class PianoInputResult {
+  const PianoInputResult({
+    required this.accepted,
+    required this.judgment,
+    this.points = 0,
+    this.holdStarted = false,
+  });
+
+  const PianoInputResult.miss()
+      : accepted = false,
+        judgment = PianoJudgment.miss,
+        points = 0,
+        holdStarted = false;
+
+  final bool accepted;
+  final PianoJudgment judgment;
+  final int points;
+  final bool holdStarted;
+}
 
 class PianoTickResult {
   const PianoTickResult({
     this.missed = 0,
-    this.levelAdvanced = false,
+    this.points = 0,
+    this.judgment,
     this.songCompleted = false,
   });
 
   final int missed;
-  final bool levelAdvanced;
+  final int points;
+  final PianoJudgment? judgment;
   final bool songCompleted;
 }
 
 class PianoTilesEngine {
-  PianoTilesEngine({math.Random? random}) : _random = random ?? math.Random();
+  PianoTilesEngine(this.song);
 
   static const laneCount = 4;
-  static const tileHeight = 154.0;
-  static const tilesPerLevel = 24;
-  static const levelCount = 3;
-  static const songTileCount = tilesPerLevel * levelCount;
-  static const hitZoneStart = .47;
-  static const initialTileCount = 7;
+  static const hitLine = .82;
+  static const tapHeight = 142.0;
+  static const perfectWindow = .075;
+  static const greatWindow = .145;
+  static const goodWindow = .24;
 
-  final math.Random _random;
-  final List<PianoTile> tiles = [];
+  final PianoSong song;
+  final List<PianoRuntimeNote> notes = [];
   PianoGameStatus status = PianoGameStatus.ready;
+  double time = 0;
   int score = 0;
   int bestScore = 0;
   int combo = 0;
   int bestCombo = 0;
-  int hits = 0;
+  int perfects = 0;
+  int greats = 0;
+  int goods = 0;
   int misses = 0;
   int mistakes = 0;
   int processed = 0;
-  int _spawned = 0;
-  int _nextId = 0;
-  int? _lastLane;
-  double _spacing = 185;
+  double earnedAccuracy = 0;
 
-  int get level => math.min(processed ~/ tilesPerLevel + 1, levelCount);
-  double get progress => processed / songTileCount;
-  double get accuracy => processed == 0 ? 1 : hits / processed;
-  double get speed => .235 + (level - 1) * .045;
+  double get progress => (time / song.duration).clamp(0, 1);
+  double get accuracy =>
+      processed == 0 ? 1 : (earnedAccuracy / processed).clamp(0, 1);
+  Iterable<PianoRuntimeNote> get activeNotes =>
+      notes.where((note) => note.isActive);
 
-  void start(double boardHeight, {int previousBest = 0}) {
+  void start({int previousBest = 0}) {
+    notes
+      ..clear()
+      ..addAll(song.notes.map(PianoRuntimeNote.new));
+    status = PianoGameStatus.playing;
+    time = 0;
     score = 0;
     bestScore = previousBest;
     combo = 0;
     bestCombo = 0;
-    hits = 0;
+    perfects = 0;
+    greats = 0;
+    goods = 0;
     misses = 0;
     mistakes = 0;
     processed = 0;
-    _spawned = 0;
-    _nextId = 0;
-    _lastLane = null;
-    _spacing = math.max(tileHeight + 30, boardHeight * .13);
-    tiles.clear();
-    status = PianoGameStatus.playing;
-
-    final firstY = boardHeight * .68 - tileHeight / 2;
-    for (var index = 0;
-        index < initialTileCount && _spawned < songTileCount;
-        index++) {
-      _spawn(firstY - index * _spacing);
-    }
+    earnedAccuracy = 0;
   }
 
-  PianoTickResult tick(double elapsedSeconds, double boardHeight) {
+  PianoTickResult tick(double elapsedSeconds) {
     if (status != PianoGameStatus.playing) return const PianoTickResult();
-    final previousLevel = level;
-    final movement = boardHeight * speed * elapsedSeconds;
-    for (var index = 0; index < tiles.length; index++) {
-      tiles[index] = tiles[index].copyWith(y: tiles[index].y + movement);
-    }
-
+    time += elapsedSeconds;
     var missedNow = 0;
-    while (tiles.isNotEmpty && tiles.first.y > boardHeight) {
-      tiles.removeAt(0);
-      misses++;
-      processed++;
-      combo = 0;
-      missedNow++;
-      _fillQueue();
+    var pointsNow = 0;
+    PianoJudgment? judgment;
+    for (final note in activeNotes.toList()) {
+      if (note.state == PianoNoteState.pending &&
+          time - note.beat.time > goodWindow) {
+        _miss(note);
+        missedNow++;
+      } else if (note.state == PianoNoteState.holding &&
+          time >= note.beat.time + note.beat.duration) {
+        judgment = note.judgment ?? PianoJudgment.good;
+        pointsNow += _complete(note, judgment);
+      }
     }
     final complete = _completeIfFinished();
     return PianoTickResult(
       missed: missedNow,
-      levelAdvanced: !complete && level > previousLevel,
+      points: pointsNow,
+      judgment: judgment,
       songCompleted: complete,
     );
   }
 
-  bool tap(int lane, double boardHeight) {
-    if (status != PianoGameStatus.playing) return false;
-    final index = tiles.indexWhere((tile) =>
-        tile.lane == lane &&
-        tile.y + tileHeight >= boardHeight * hitZoneStart &&
-        tile.y < boardHeight);
-    if (index < 0) {
+  PianoInputResult press(int lane) {
+    if (status != PianoGameStatus.playing) {
+      return const PianoInputResult.miss();
+    }
+    PianoRuntimeNote? closest;
+    var closestDistance = double.infinity;
+    for (final note in notes) {
+      if (note.state != PianoNoteState.pending || note.beat.lane != lane) {
+        continue;
+      }
+      final distance = (note.beat.time - time).abs();
+      if (distance < closestDistance) {
+        closest = note;
+        closestDistance = distance;
+      }
+    }
+    if (closest == null || closestDistance > goodWindow) {
       mistakes++;
       combo = 0;
-      return false;
+      return const PianoInputResult.miss();
     }
 
-    tiles.removeAt(index);
-    hits++;
+    final judgment = _judgment(closestDistance);
+    if (closest.beat.kind == PianoNoteKind.hold) {
+      closest.state = PianoNoteState.holding;
+      closest.judgment = judgment;
+      closest.holdStartedAt = time;
+      return PianoInputResult(
+        accepted: true,
+        judgment: judgment,
+        holdStarted: true,
+      );
+    }
+    final points = _complete(closest, judgment);
+    _completeIfFinished();
+    return PianoInputResult(accepted: true, judgment: judgment, points: points);
+  }
+
+  PianoInputResult release(int lane) {
+    final holding = notes.where((note) =>
+        note.state == PianoNoteState.holding && note.beat.lane == lane);
+    if (holding.isEmpty) return const PianoInputResult.miss();
+    final note = holding.first;
+    final end = note.beat.time + note.beat.duration;
+    if (time < end - .16) {
+      _miss(note);
+      return const PianoInputResult.miss();
+    }
+    final judgment = note.judgment ?? PianoJudgment.good;
+    final points = _complete(note, judgment);
+    _completeIfFinished();
+    return PianoInputResult(accepted: true, judgment: judgment, points: points);
+  }
+
+  int _complete(PianoRuntimeNote note, PianoJudgment judgment) {
+    if (!note.isActive) return 0;
+    note.state = PianoNoteState.hit;
+    note.judgment = judgment;
     processed++;
     combo++;
     bestCombo = math.max(bestCombo, combo);
-    score += 10 + math.min(combo - 1, 10);
+    final base = switch (judgment) {
+      PianoJudgment.perfect => 100,
+      PianoJudgment.great => 70,
+      PianoJudgment.good => 40,
+      PianoJudgment.miss => 0,
+    };
+    final holdBonus = note.beat.kind == PianoNoteKind.hold ? 80 : 0;
+    final points = base + holdBonus + math.min(combo, 50) * 2;
+    score += points;
     bestScore = math.max(bestScore, score);
-    _fillQueue();
-    _completeIfFinished();
-    return true;
+    switch (judgment) {
+      case PianoJudgment.perfect:
+        perfects++;
+        earnedAccuracy += 1;
+        break;
+      case PianoJudgment.great:
+        greats++;
+        earnedAccuracy += .75;
+        break;
+      case PianoJudgment.good:
+        goods++;
+        earnedAccuracy += .45;
+        break;
+      case PianoJudgment.miss:
+        break;
+    }
+    return points;
   }
 
-  bool registerMistake() {
-    if (status != PianoGameStatus.playing) return false;
-    mistakes++;
+  void _miss(PianoRuntimeNote note) {
+    if (!note.isActive) return;
+    note.state = PianoNoteState.missed;
+    note.judgment = PianoJudgment.miss;
+    processed++;
+    misses++;
     combo = 0;
-    return true;
   }
 
   bool _completeIfFinished() {
-    if (processed < songTileCount) return false;
+    if (time < song.duration) return false;
+    for (final note in activeNotes.toList()) {
+      _miss(note);
+    }
     status = PianoGameStatus.songComplete;
-    tiles.clear();
     return true;
   }
 
-  void _fillQueue() {
-    while (tiles.length < initialTileCount && _spawned < songTileCount) {
-      final highestY = tiles.isEmpty
-          ? -tileHeight
-          : tiles.map((tile) => tile.y).reduce(math.min);
-      _spawn(highestY - _spacing);
-    }
-  }
-
-  void _spawn(double y) {
-    var lane = _random.nextInt(laneCount);
-    if (lane == _lastLane) lane = (lane + 1 + _random.nextInt(3)) % laneCount;
-    _lastLane = lane;
-    tiles.add(PianoTile(id: _nextId++, lane: lane, y: y));
-    tiles.sort((a, b) => b.y.compareTo(a.y));
-    _spawned++;
+  PianoJudgment _judgment(double distance) {
+    if (distance <= perfectWindow) return PianoJudgment.perfect;
+    if (distance <= greatWindow) return PianoJudgment.great;
+    return PianoJudgment.good;
   }
 }
