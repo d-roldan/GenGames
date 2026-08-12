@@ -3,7 +3,7 @@
 ## Suites actuales
 
 - Backend: pytest con SQLite aislado para API pública y administrativa.
-- Flutter: trece unit/widget tests para almacenamiento, sincronización, contenido,
+- Flutter: dieciséis unit/widget tests para almacenamiento, sincronización, contenido,
   registro de juegos, acceso al área adulta y reglas de Piano Tiles.
 - Panel: Vitest para login y componentes funcionales.
 - E2E: `tests/e2e/test_sync_flow.py` verifica instalación, lote de eventos y
