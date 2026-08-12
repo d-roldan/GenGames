@@ -56,6 +56,18 @@ El emulador Android accede al host mediante `10.0.2.2`. Un teléfono físico y l
 PC deben compartir red; autorice el puerto `8000` únicamente en redes privadas.
 No se necesita Google Play para instalar una compilación de desarrollo.
 
+## Publicar cambios en un teléfono sin USB
+
+Una instalación normal no recibe hot reload. Después de modificar Dart, assets
+o código Android, se debe incrementar versión/build, compilar un APK ARM64,
+publicarlo en el backend y anunciar la metadata al final. La versión instalada
+mostrará **Nueva actualización** al abrirse; también puede buscarse desde el área
+de adultos.
+
+No improvise este orden ni cambie la firma o el `applicationId`. Siga
+[Actualizaciones Android](android-updates.md) para cada publicación destinada al
+teléfono físico.
+
 ## Prueba offline
 
 Abra y use los juegos, detenga `backend` con

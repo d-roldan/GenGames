@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     content_dir: Path = Path("/data/content")
     content_public_url: str = "http://localhost:8000/content"
+    android_apk_path: Path = Path("/data/releases/GenGames-Android-ARM64.apk")
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property

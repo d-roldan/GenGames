@@ -31,6 +31,31 @@ class AudioService {
     return _play(settings.$1, settings.$2, wobble: settings.$3);
   }
 
+  /// Plays one note of the original Piano Tiles melody.
+  Future<void> playPianoNote(int noteIndex) {
+    const melody = <double>[
+      261.63,
+      329.63,
+      392.00,
+      523.25,
+      440.00,
+      392.00,
+      329.63,
+      293.66,
+      261.63,
+      329.63,
+      392.00,
+      659.25,
+      523.25,
+      440.00,
+      392.00,
+      329.63,
+    ];
+    return _play(melody[noteIndex % melody.length], .28, wobble: 1.5);
+  }
+
+  Future<void> playPianoMiss() => _play(92, .55, wobble: 22);
+
   Future<void> _play(double frequency, double seconds,
       {double wobble = 0}) async {
     final player = _player;

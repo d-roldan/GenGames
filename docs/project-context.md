@@ -7,13 +7,14 @@ personas y asistentes de IA; no reemplaza la documentación técnica enlazada.
 ## Identidad y propósito
 
 - **Repositorio:** GenGames.
-- **Producto visible inicial:** KidsGame.
+- **Producto visible:** GenGames.
 - **Repositorio remoto:** <https://github.com/d-roldan/GenGames>.
-- **Versión publicada:** `v0.1.1` (`mobile/pubspec.yaml`: `0.1.1+2`).
+- **Versión de desarrollo publicada:** `v0.2.0`
+  (`mobile/pubspec.yaml`: `0.2.0+5`).
 - **Público principal:** niños de aproximadamente 3 años y sus adultos
   responsables.
 
-KidsGame busca reunir múltiples minijuegos en una sola aplicación infantil. La
+GenGames busca reunir múltiples minijuegos en una sola aplicación infantil. La
 experiencia debe ser visual, inmediata y comprensible sin lectura: abrir la app,
 ver tarjetas grandes, tocar y jugar. El proyecto no se plantea como un prototipo
 descartable, sino como una base modular que pueda crecer hacia más juegos,
@@ -33,19 +34,21 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
 6. **Entornos separados:** development, staging y production no comparten bases,
    volúmenes ni secretos.
 
-## Estado actual: v0.1.1
+## Estado actual: v0.2.0
 
 ### Implementado
 
 | Área | Estado actual |
 | --- | --- |
-| Aplicación Flutter | Inicio infantil, área para adultos y tres juegos registrados como módulos independientes. |
+| Aplicación Flutter | Inicio infantil, área para adultos y cuatro juegos registrados como módulos independientes. |
 | Gatito | Reacciones visuales y sonidos originales generados localmente para interacciones y objetos. |
 | Dibujar | Lienzo táctil, colores, grosores, goma y limpieza. El guardado de dibujos aún no está implementado. |
 | Animales | Perro, gato, vaca, caballo, pato y oveja con animación y sonido local. |
+| Piano Tiles | Cuatro carriles, melodía original offline, puntaje y récord local, niveles cada diez aciertos, velocidad creciente y fin inmediato ante un error. |
 | Persistencia | SQLite nativo; SQLite WebAssembly e IndexedDB en Chrome. Guarda instalación, ajustes, estadísticas, cola y versiones de contenido. |
 | Sincronización | Registro anónimo, eventos en lote, idempotencia por UUID y reintento silencioso al abrir, recuperar red y cada 30 segundos. |
 | Contenido | Manifest, descarga, SHA-256, archivo temporal e instalación atómica en plataformas nativas. |
+| Actualizaciones Android | Detección automática y manual, descarga del APK con progreso e instalador oficial mediante `FileProvider`. |
 | Backend | FastAPI bajo `/api/v1`, PostgreSQL, SQLAlchemy, Alembic y datos iniciales. |
 | Administración | Next.js con login JWT, tablero, juegos, configuración, versiones y carga de contenido. |
 | Infraestructura | Docker Compose local y definiciones separadas para staging y producción con Caddy. |
@@ -58,16 +61,17 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
   desde la API administrativa.
 - El preview web abre en Chrome en `http://localhost:5173` y permite entrar a los
   juegos. Se comprobó específicamente el menú y Gatito.
-- El análisis estático de Flutter y sus siete tests pasan en la versión `v0.1.1`.
+- Android se validó en emulador y teléfono físico. El APK ARM64 se instala por
+  Wi-Fi y las versiones nuevas se anuncian y descargan desde la propia app.
+- El análisis estático de Flutter y sus once tests pasan en la versión `v0.2.0`.
 - Las suites de backend y panel y el build del panel pasaron durante la
   preparación de la versión.
 
 ### Preparado pero no validado como entrega final
 
-- Los runners de Windows y Android existen, pero falta completar la validación
-  manual en Windows, Android Emulator y un teléfono físico.
-- Los flavors Android development, staging y production están configurados,
-  pero todavía no se validaron APK/AAB firmados para distribución.
+- El runner de Windows existe, pero falta completar su validación manual.
+- Los flavors Android staging y production están configurados, pero todavía no
+  se validaron APK/AAB con firma de release para distribución externa.
 - Los Compose de staging y producción y sus proxies existen, pero aún no se han
   desplegado en servidores reales.
 - Google Play, firma de release, Internal Testing, backups operativos y monitoreo
@@ -83,10 +87,10 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
 - Los archivos `.env` creados antes de esta revisión pueden conservar una
   `CONTENT_PUBLIC_URL` sin `/api/v1`; deben alinearse con los ejemplos actuales
   antes de probar descargas reales.
-- La configuración remota y la política de versiones están expuestas por la API
-  y el panel, pero aún no modifican activamente la experiencia infantil.
-- La versión todavía se actualiza en más de un componente del monorepo; conviene
-  automatizar su propagación antes de una release funcional mayor.
+- La configuración remota aún no modifica activamente la experiencia infantil.
+- La versión se actualiza en más de un componente del monorepo. El procedimiento
+  está documentado, pero conviene automatizar su propagación antes de una
+  release funcional mayor.
 - La autenticación administrativa usa Bearer JWT en `sessionStorage`. Para
   producción se recomienda migrar a cookie HttpOnly mediante un BFF.
 - El reintento actual es periódico, no un backoff exponencial persistente.
@@ -99,7 +103,8 @@ Flutter (Windows / Android / Chrome preview)
   ├─ SQLite / IndexedDB
   ├─ AnalyticsService -> sync_queue
   ├─ SyncService ------ HTTPS ------┐
-  └─ ContentService ----------------┤
+  ├─ ContentService ----------------┤
+  └─ UpdateService ---- APK --------┤
                                     v
                          FastAPI + PostgreSQL
                                     ^
@@ -125,10 +130,9 @@ aplicación; imágenes, sonidos, niveles y packs podrán llegar desde el servido
 Prioridades próximas sugeridas:
 
 1. Validar y corregir la ejecución en Windows.
-2. Validar Android Emulator y teléfono físico, incluida pérdida y recuperación
-   de conectividad.
+2. Automatizar el incremento y publicación coherente de versiones Android.
 3. Centralizar la versión de la aplicación y completar progreso local.
-4. Integrar configuración, versiones y contenido remoto en la app sin afectar el
+4. Integrar configuración y contenido remoto en la app sin afectar el
    funcionamiento offline.
 5. Validar staging real, backups y restauración.
 6. Preparar firma, APK/AAB e Internal Testing de Google Play.
@@ -139,6 +143,8 @@ Prioridades próximas sugeridas:
 - [Arquitectura](architecture.md): componentes y decisiones técnicas.
 - [Desarrollo](development.md): ejecución local y plataformas de prueba.
 - [Aplicación Flutter](mobile.md): juegos, servicios y almacenamiento local.
+- [Actualizaciones Android](android-updates.md): publicación e instalación de
+  versiones nuevas desde la aplicación.
 - [API](api.md), [base de datos](database.md) y
   [panel administrativo](admin.md): plataforma del servidor.
 - [Sincronización](sync-system.md) y [contenido](content-system.md): flujos
@@ -155,7 +161,9 @@ del área afectada. Verificar siempre el código antes de afirmar que una funci�
 existe. Cuando cambien alcance, arquitectura, estado validado o próximos pasos,
 actualizar este archivo en el mismo commit. Cuando se publique una versión,
 actualizar también `VERSION`, `mobile/pubspec.yaml`, `CHANGELOG.md` y el tag Git
-según corresponda.
+según corresponda. Toda versión nueva del cliente Android debe seguir
+[Actualizaciones Android](android-updates.md); la metadata se anuncia sólo
+después de verificar y publicar el APK correcto.
 
 No registrar aquí secretos, credenciales reales, datos personales ni contenido
 que sólo exista en una computadora.

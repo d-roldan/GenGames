@@ -83,7 +83,25 @@ def remote_config(db: Session = Depends(get_db)) -> dict:
 
 @router.get("/version", response_model=VersionOut)
 def version(platform: str = Query(default="android"), db: Session = Depends(get_db)):
+    apk_path = settings.android_apk_path
+    apk_available = platform == "android" and apk_path.is_file()
+    download_fields = {
+        "download_url": "/api/v1/app/android/download" if apk_available else None,
+        "download_size": apk_path.stat().st_size if apk_available else None,
+    }
     item = db.scalar(select(AppVersion).where(AppVersion.platform == platform))
     if not item:
-        return VersionOut(platform=platform, version="0.1.1", minimum_supported_version="0.1.0", latest_version="0.1.1")
-    return VersionOut(platform=item.platform, version=item.version, minimum_supported_version=item.minimum_supported_version, latest_version=item.latest_version)
+        return VersionOut(platform=platform, version="0.2.0", minimum_supported_version="0.1.0", latest_version="0.2.0", **download_fields)
+    return VersionOut(platform=item.platform, version=item.version, minimum_supported_version=item.minimum_supported_version, latest_version=item.latest_version, **download_fields)
+
+
+@router.get("/app/android/download")
+def download_android_app():
+    apk_path = settings.android_apk_path
+    if not apk_path.is_file():
+        raise HTTPException(status_code=404, detail="Android update is not available")
+    return FileResponse(
+        apk_path,
+        filename="GenGames-Android-ARM64.apk",
+        media_type="application/vnd.android.package-archive",
+    )

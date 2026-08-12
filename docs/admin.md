@@ -14,6 +14,10 @@ Funciones actuales:
 - lectura y edición de versiones por plataforma;
 - listado y carga de packs de hasta 100 MB; el backend calcula SHA-256.
 
+La edición de `latest_version` para Android es el último paso de una
+publicación, nunca el primero. Antes debe existir un APK verificado que coincida
+con esa versión. Consulte [Actualizaciones Android](android-updates.md).
+
 El Bearer JWT dura 60 minutos por defecto y el navegador lo conserva en
 `sessionStorage`. Las contraseñas se almacenan con el algoritmo recomendado por
 `pwdlib` y el usuario inicial se crea desde variables de entorno.

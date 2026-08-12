@@ -1,5 +1,30 @@
 # Historial de versiones
 
+## v0.2.0 — Piano Tiles
+
+- Nuevo juego **Piano Tiles** con cuatro carriles y controles táctiles grandes.
+- Melodía original generada localmente nota por nota, disponible sin conexión.
+- La partida se detiene al tocar un carril incorrecto o dejar pasar una baldosa.
+- Puntaje, nivel, récord local y resumen final con opción de volver a jugar.
+- Cada diez aciertos aumenta el nivel y la velocidad de las baldosas.
+- Analítica anónima registra inicio y fin de partida con puntaje, nivel y motivo.
+
+## v0.1.3 — Identidad GenGames y actualización dentro de la app
+
+- El nombre visible del producto pasa a ser **GenGames** en Android, Flutter y
+  web, conservando el identificador Android heredado para mantener los datos.
+- La aplicación detecta nuevas versiones al abrir y desde el área para adultos.
+- Descarga el APK ARM64 con progreso y abre el instalador oficial de Android.
+- El backend publica metadata, tamaño y endpoint de descarga de la versión.
+- Se documenta el procedimiento obligatorio de publicación para que toda nueva
+  versión del cliente pueda instalarse desde la aplicación.
+
+## v0.1.2 — Actualizador Android inicial
+
+- Primera versión con `UpdateService`, permiso de instalación por fuente y
+  `FileProvider` para actualizar sin USB dentro de la red local.
+- Validación en emulador Android y teléfono físico mediante APK ARM64.
+
 ## v0.1.1 — Contexto y documentación operativa
 
 Esta actualización compatible convierte la documentación en una fuente de verdad

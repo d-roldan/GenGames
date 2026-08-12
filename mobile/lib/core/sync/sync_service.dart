@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../config/app_version.dart';
 import '../network/api_client.dart';
 import '../storage/local_database.dart';
 
@@ -15,7 +16,7 @@ class SyncService {
       final installationId = await database.installationId;
       await api.post('/installations', {
         'installation_uuid': installationId,
-        'app_version': '0.1.1',
+        'app_version': currentAppVersion,
         'platform': 'flutter'
       });
       final rows = await database.pending();

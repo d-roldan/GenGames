@@ -25,6 +25,7 @@ services:
     volumes:
       - ./backend:/app
       - content_dev_data:/data/content
+      - ./releases:/data/releases:ro
     depends_on:
       postgres:
         condition: service_healthy

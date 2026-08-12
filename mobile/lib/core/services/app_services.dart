@@ -7,6 +7,7 @@ import '../network/api_client.dart';
 import '../network/connectivity_service.dart';
 import '../storage/local_database.dart';
 import '../sync/sync_service.dart';
+import '../updates/update_service.dart';
 
 class AppServices {
   AppServices._(
@@ -16,7 +17,8 @@ class AppServices {
       required this.sync,
       required this.content,
       required this.connectivity,
-      required this.audio});
+      required this.audio,
+      required this.updates});
   final AppConfig config;
   final LocalDatabase database;
   final AnalyticsService analytics;
@@ -24,6 +26,7 @@ class AppServices {
   final ContentService content;
   final ConnectivityService connectivity;
   final AudioService audio;
+  final UpdateService updates;
   Timer? _timer;
 
   static Future<AppServices> create(AppConfig config,
@@ -37,7 +40,8 @@ class AppServices {
         sync: SyncService(database: db, api: api),
         content: ContentService(database: db, api: api),
         connectivity: ConnectivityService(),
-        audio: AudioService());
+        audio: AudioService(),
+        updates: UpdateService(api));
     services.connectivity.onNetworkAvailable(services.sync.synchronize);
     services._timer = Timer.periodic(
         const Duration(seconds: 30), (_) => services.sync.synchronize());
@@ -57,6 +61,7 @@ class AppServices {
       content: ContentService(database: database, api: client),
       connectivity: ConnectivityService(),
       audio: AudioService.silent(),
+      updates: UpdateService(client),
     );
   }
 

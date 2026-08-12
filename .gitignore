@@ -45,6 +45,7 @@ android/app/release/
 # IDE / OS
 .idea/
 .vscode/
+.codex-remote-attachments/
 *.iml
 .DS_Store
 Thumbs.db
