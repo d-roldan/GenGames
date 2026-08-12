@@ -9,8 +9,8 @@ personas y asistentes de IA; no reemplaza la documentación técnica enlazada.
 - **Repositorio:** GenGames.
 - **Producto visible:** GenGames.
 - **Repositorio remoto:** <https://github.com/d-roldan/GenGames>.
-- **Versión de desarrollo publicada:** `v0.1.3`
-  (`mobile/pubspec.yaml`: `0.1.3+4`).
+- **Versión de desarrollo publicada:** `v0.2.0`
+  (`mobile/pubspec.yaml`: `0.2.0+5`).
 - **Público principal:** niños de aproximadamente 3 años y sus adultos
   responsables.
 
@@ -34,16 +34,17 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
 6. **Entornos separados:** development, staging y production no comparten bases,
    volúmenes ni secretos.
 
-## Estado actual: v0.1.3
+## Estado actual: v0.2.0
 
 ### Implementado
 
 | Área | Estado actual |
 | --- | --- |
-| Aplicación Flutter | Inicio infantil, área para adultos y tres juegos registrados como módulos independientes. |
+| Aplicación Flutter | Inicio infantil, área para adultos y cuatro juegos registrados como módulos independientes. |
 | Gatito | Reacciones visuales y sonidos originales generados localmente para interacciones y objetos. |
 | Dibujar | Lienzo táctil, colores, grosores, goma y limpieza. El guardado de dibujos aún no está implementado. |
 | Animales | Perro, gato, vaca, caballo, pato y oveja con animación y sonido local. |
+| Piano Tiles | Cuatro carriles, melodía original offline, puntaje y récord local, niveles cada diez aciertos, velocidad creciente y fin inmediato ante un error. |
 | Persistencia | SQLite nativo; SQLite WebAssembly e IndexedDB en Chrome. Guarda instalación, ajustes, estadísticas, cola y versiones de contenido. |
 | Sincronización | Registro anónimo, eventos en lote, idempotencia por UUID y reintento silencioso al abrir, recuperar red y cada 30 segundos. |
 | Contenido | Manifest, descarga, SHA-256, archivo temporal e instalación atómica en plataformas nativas. |
@@ -62,7 +63,7 @@ contenido descargable, Android, Windows, staging, producción y Google Play.
   juegos. Se comprobó específicamente el menú y Gatito.
 - Android se validó en emulador y teléfono físico. El APK ARM64 se instala por
   Wi-Fi y las versiones nuevas se anuncian y descargan desde la propia app.
-- El análisis estático de Flutter y sus ocho tests pasan en la versión `v0.1.3`.
+- El análisis estático de Flutter y sus once tests pasan en la versión `v0.2.0`.
 - Las suites de backend y panel y el build del panel pasaron durante la
   preparación de la versión.
 

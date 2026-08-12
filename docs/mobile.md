@@ -6,13 +6,16 @@ reciben `APP_ENV` y `API_URL` mediante `--dart-define`, sin secretos en el códi
 
 ## Experiencia infantil
 
-La pantalla de inicio muestra tres tarjetas grandes:
+La pantalla de inicio muestra cuatro tarjetas grandes:
 
 - **Gatito:** figura interactiva, reacciones visuales, comida, juguete y cama,
   con efectos originales generados localmente.
 - **Dibujar:** lienzo táctil, paleta de colores, grosores, goma y limpieza. No
   guarda dibujos todavía.
 - **Animales:** perro, gato, vaca, caballo, pato y oveja con animación y sonido.
+- **Piano Tiles:** cuatro carriles, melodía original offline, puntaje y récord;
+  aumenta la velocidad cada diez aciertos y termina ante un toque o baldosa
+  incorrectos.
 
 Cada módulo se publica en el registro común `GameDefinition`. Agregar un juego
 requiere crear su pantalla y registrarlo, sin modificar la lógica interna de los

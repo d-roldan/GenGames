@@ -14,6 +14,7 @@ android {
         create("production") { dimension = "environment"; resValue("string", "app_name", "GenGames") }
     }
     buildTypes { release { signingConfig = signingConfigs.getByName("debug") } }
+    packaging { jniLibs { excludes += setOf("lib/armeabi-v7a/**", "lib/x86/**", "lib/x86_64/**") } }
 }
 flutter { source = "../.." }
 
