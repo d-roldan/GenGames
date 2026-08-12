@@ -62,20 +62,14 @@ class AudioService {
         wobble: 1.5, volume: 1);
   }
 
-  Future<void> startPianoMusic() async {
+  Future<void> startPianoMusic(String asset) async {
     final player = _music;
     if (player == null) return;
     await player.stop();
-    await player.setReleaseMode(ReleaseMode.loop);
-    await player.setVolume(.58);
+    await player.setReleaseMode(ReleaseMode.stop);
+    await player.setVolume(.72);
     await player.setPlaybackRate(1);
-    await player.play(AssetSource('music/piano_tiles_theme.wav'));
-  }
-
-  Future<void> setPianoLevel(int level) async {
-    final player = _music;
-    if (player == null) return;
-    await player.setPlaybackRate(1 + (level - 1) * .09);
+    await player.play(AssetSource(asset));
   }
 
   Future<void> stopPianoMusic() async => _music?.stop();
