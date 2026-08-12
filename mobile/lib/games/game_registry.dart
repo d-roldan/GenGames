@@ -3,6 +3,7 @@ import 'animals_game/animals_game_screen.dart';
 import 'cat_game/cat_game_screen.dart';
 import 'drawing_game/drawing_game_screen.dart';
 import 'game_definition.dart';
+import 'piano_tiles_game/piano_tiles_game_screen.dart';
 
 const games = <GameDefinition>[
   GameDefinition(
@@ -23,4 +24,10 @@ const games = <GameDefinition>[
       icon: '🐶',
       color: Color(0xFFFF8A80),
       builder: AnimalsGameScreen.new),
+  GameDefinition(
+      id: 'piano_tiles',
+      label: 'Piano Tiles',
+      icon: '🎹',
+      color: Color(0xFFB39DDB),
+      builder: PianoTilesGameScreen.new),
 ];

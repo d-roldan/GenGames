@@ -1,5 +1,14 @@
 # Historial de versiones
 
+## v0.2.0 — Piano Tiles
+
+- Nuevo juego **Piano Tiles** con cuatro carriles y controles táctiles grandes.
+- Melodía original generada localmente nota por nota, disponible sin conexión.
+- La partida se detiene al tocar un carril incorrecto o dejar pasar una baldosa.
+- Puntaje, nivel, récord local y resumen final con opción de volver a jugar.
+- Cada diez aciertos aumenta el nivel y la velocidad de las baldosas.
+- Analítica anónima registra inicio y fin de partida con puntaje, nivel y motivo.
+
 ## v0.1.3 — Identidad GenGames y actualización dentro de la app
 
 - El nombre visible del producto pasa a ser **GenGames** en Android, Flutter y
