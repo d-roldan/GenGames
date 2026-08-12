@@ -1,5 +1,6 @@
 name: Flutter CI
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [develop, main]
@@ -15,4 +16,3 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build apk --debug --flavor development --dart-define=APP_ENV=development --dart-define=API_URL=http://10.0.2.2:8000/api/v1
-
