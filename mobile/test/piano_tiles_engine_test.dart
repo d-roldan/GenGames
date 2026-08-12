@@ -4,41 +4,66 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kids_game/games/piano_tiles_game/piano_tiles_engine.dart';
 
 void main() {
-  test('scores a valid tile and increases speed after each level', () {
-    final engine = PianoTilesEngine(random: math.Random(4))..start();
-    const height = 800.0;
+  const height = 800.0;
+
+  test('starts with a continuous queue of playable tiles', () {
+    final engine = PianoTilesEngine(random: math.Random(4))..start(height);
+
+    expect(engine.tiles, hasLength(PianoTilesEngine.initialTileCount));
+    expect(engine.status, PianoGameStatus.playing);
+    expect(engine.tiles.map((tile) => tile.id).toSet(), hasLength(7));
+  });
+
+  test('valid tiles build score and speed increases after a level', () {
+    final engine = PianoTilesEngine(random: math.Random(4))..start(height);
     final initialSpeed = engine.speed;
 
-    for (var i = 0; i < PianoTilesEngine.pointsPerLevel; i++) {
-      final tile = engine.tile!;
-      final center = height * PianoTilesEngine.hitLine;
-      engine.tile = tile.copyWith(y: center - PianoTilesEngine.tileHeight / 2);
+    for (var i = 0; i < PianoTilesEngine.tilesPerLevel; i++) {
+      final tile = engine.tiles.first;
+      engine.tiles[0] = tile.copyWith(y: height * .66);
       expect(engine.tap(tile.lane, height), isTrue);
     }
 
-    expect(engine.score, PianoTilesEngine.pointsPerLevel);
+    expect(engine.hits, PianoTilesEngine.tilesPerLevel);
     expect(engine.level, 2);
     expect(engine.speed, greaterThan(initialSpeed));
+    expect(engine.combo, PianoTilesEngine.tilesPerLevel);
     expect(engine.status, PianoGameStatus.playing);
   });
 
-  test('wrong lane stops the game immediately', () {
-    final engine = PianoTilesEngine(random: math.Random(2))..start();
-    const height = 800.0;
-    final tile = engine.tile!;
-    engine.tile = tile.copyWith(
-        y: height * PianoTilesEngine.hitLine - PianoTilesEngine.tileHeight / 2);
+  test('wrong taps reset the combo but do not end the song', () {
+    final engine = PianoTilesEngine(random: math.Random(2))..start(height);
 
-    expect(engine.tap((tile.lane + 1) % PianoTilesEngine.laneCount, height),
-        isFalse);
-    expect(engine.status, PianoGameStatus.gameOver);
-    expect(engine.score, 0);
+    expect(engine.tap(engine.tiles.first.lane, height), isTrue);
+    expect(engine.tap((engine.tiles.first.lane + 1) % 4, height), isFalse);
+
+    expect(engine.mistakes, 1);
+    expect(engine.combo, 0);
+    expect(engine.status, PianoGameStatus.playing);
   });
 
-  test('a missed tile stops the game', () {
-    final engine = PianoTilesEngine(random: math.Random(1))..start();
+  test('missed tiles are counted and the song keeps flowing', () {
+    final engine = PianoTilesEngine(random: math.Random(1))..start(height);
 
-    expect(engine.tick(10, 800), isTrue);
-    expect(engine.status, PianoGameStatus.gameOver);
+    final result = engine.tick(10, height);
+
+    expect(result.missed, greaterThan(0));
+    expect(engine.misses, result.missed);
+    expect(engine.status, PianoGameStatus.playing);
+    expect(engine.tiles, isNotEmpty);
+  });
+
+  test('the song ends only after all tiles have been processed', () {
+    final engine = PianoTilesEngine(random: math.Random(8))..start(height);
+
+    for (var i = 0; i < PianoTilesEngine.songTileCount; i++) {
+      final tile = engine.tiles.first;
+      engine.tiles[0] = tile.copyWith(y: height * .66);
+      expect(engine.tap(tile.lane, height), isTrue);
+    }
+
+    expect(engine.status, PianoGameStatus.songComplete);
+    expect(engine.hits, PianoTilesEngine.songTileCount);
+    expect(engine.progress, 1);
   });
 }

@@ -23,7 +23,11 @@ class _PianoTilesGameScreenState extends State<PianoTilesGameScreen>
   late final Ticker _ticker;
   Duration _lastElapsed = Duration.zero;
   double _boardHeight = 1;
-  int _levelShown = 1;
+  int? _errorLane;
+  int _announcedLevel = 1;
+  Timer? _feedbackTimer;
+  Timer? _levelTimer;
+  bool _showLevel = false;
 
   @override
   void initState() {
@@ -38,20 +42,28 @@ class _PianoTilesGameScreenState extends State<PianoTilesGameScreen>
             Duration.microsecondsPerSecond;
     _lastElapsed = elapsed;
     if (engine.status != PianoGameStatus.playing || delta <= 0) return;
-    final missed = engine.tick(math.min(delta, .1), _boardHeight);
-    if (missed) _finish('tile_missed');
+    final result = engine.tick(math.min(delta, .1), _boardHeight);
+    if (result.missed > 0) {
+      HapticFeedback.selectionClick();
+    }
+    if (result.levelAdvanced) _announceLevel();
+    if (result.songCompleted) _finish();
     if (mounted) setState(() {});
   }
 
   Future<void> _start() async {
     final savedBest =
         await widget.services.database.setting('piano_tiles_best');
-    engine.start(previousBest: int.tryParse(savedBest ?? '') ?? 0);
-    _levelShown = 1;
+    await widget.services.audio.startPianoMusic();
+    if (!mounted) return;
+    engine.start(_boardHeight,
+        previousBest: int.tryParse(savedBest ?? '') ?? 0);
+    _announcedLevel = 1;
     _lastElapsed = Duration.zero;
+    _showLevel = false;
     unawaited(widget.services.analytics
         .track('piano_game_started', gameId: 'piano_tiles'));
-    if (mounted) setState(() {});
+    setState(() {});
   }
 
   void _tapLane(int lane) {
@@ -59,29 +71,50 @@ class _PianoTilesGameScreenState extends State<PianoTilesGameScreen>
     final previousLevel = engine.level;
     final hit = engine.tap(lane, _boardHeight);
     if (!hit) {
-      _finish('wrong_tile');
+      _showMistake(lane);
       return;
     }
     HapticFeedback.lightImpact();
-    unawaited(widget.services.audio.playPianoNote(engine.score - 1));
-    if (engine.level > previousLevel) {
-      _levelShown = engine.level;
-      HapticFeedback.mediumImpact();
-    }
+    unawaited(widget.services.audio.playPianoNote(engine.hits - 1));
+    if (engine.level > previousLevel) _announceLevel();
+    if (engine.status == PianoGameStatus.songComplete) _finish();
     setState(() {});
   }
 
-  void _finish(String reason) {
-    if (engine.status != PianoGameStatus.gameOver) engine.miss();
+  void _showMistake(int lane) {
+    HapticFeedback.mediumImpact();
+    _errorLane = lane;
+    _feedbackTimer?.cancel();
+    _feedbackTimer = Timer(const Duration(milliseconds: 260), () {
+      if (mounted) setState(() => _errorLane = null);
+    });
+    if (mounted) setState(() {});
+  }
+
+  void _announceLevel() {
+    if (engine.level <= _announcedLevel) return;
+    _announcedLevel = engine.level;
+    _showLevel = true;
+    HapticFeedback.mediumImpact();
+    unawaited(widget.services.audio.setPianoLevel(engine.level));
+    _levelTimer?.cancel();
+    _levelTimer = Timer(const Duration(milliseconds: 1300), () {
+      if (mounted) setState(() => _showLevel = false);
+    });
+  }
+
+  void _finish() {
+    unawaited(widget.services.audio.stopPianoMusic());
     HapticFeedback.heavyImpact();
-    unawaited(widget.services.audio.playPianoMiss());
-    unawaited(widget.services.analytics.track('piano_game_finished',
-        gameId: 'piano_tiles',
-        metadata: {
-          'score': engine.score,
-          'level': engine.level,
-          'reason': reason
-        }));
+    unawaited(widget.services.analytics
+        .track('piano_game_finished', gameId: 'piano_tiles', metadata: {
+      'score': engine.score,
+      'hits': engine.hits,
+      'misses': engine.misses,
+      'mistakes': engine.mistakes,
+      'best_combo': engine.bestCombo,
+      'reason': 'song_complete'
+    }));
     unawaited(_saveBest());
     if (mounted) setState(() {});
   }
@@ -97,27 +130,46 @@ class _PianoTilesGameScreenState extends State<PianoTilesGameScreen>
 
   @override
   void dispose() {
+    _feedbackTimer?.cancel();
+    _levelTimer?.cancel();
     _ticker.dispose();
+    unawaited(widget.services.audio.stopPianoMusic());
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: const Color(0xFFF4F0FF),
-        appBar: AppBar(
-          leading: const BackButton(),
-          title: const Text('🎹 Piano Tiles'),
-          actions: [
-            _Counter(label: 'NIVEL', value: '${engine.level}'),
-            _Counter(label: 'PUNTOS', value: '${engine.score}'),
-            const SizedBox(width: 12),
-          ],
-        ),
-        body: SafeArea(
-          child: LayoutBuilder(builder: (context, constraints) {
-            _boardHeight = constraints.maxHeight;
-            return Stack(
-              children: [
+  Widget build(BuildContext context) => PopScope(
+        onPopInvokedWithResult: (_, __) =>
+            unawaited(widget.services.audio.stopPianoMusic()),
+        child: Scaffold(
+          backgroundColor: const Color(0xFFF7F5FA),
+          appBar: AppBar(
+            leading: const BackButton(),
+            title: const Text('🎹 Piano Tiles'),
+            actions: [
+              _Counter(label: 'NIVEL', value: '${engine.level}/3'),
+              _Counter(label: 'PUNTOS', value: '${engine.score}'),
+              const SizedBox(width: 8),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(7),
+              child: LinearProgressIndicator(
+                minHeight: 7,
+                value: engine.status == PianoGameStatus.ready
+                    ? 0
+                    : engine.progress.clamp(0, 1),
+                backgroundColor: const Color(0xFFE7E0EF),
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(Color(0xFFFFC857)),
+              ),
+            ),
+          ),
+          body: SafeArea(
+            child: LayoutBuilder(builder: (context, constraints) {
+              _boardHeight = constraints.maxHeight;
+              final laneWidth =
+                  constraints.maxWidth / PianoTilesEngine.laneCount;
+              return Stack(children: [
                 Row(
                   children: List.generate(
                     PianoTilesEngine.laneCount,
@@ -126,14 +178,18 @@ class _PianoTilesGameScreenState extends State<PianoTilesGameScreen>
                         key: Key('piano-lane-$lane'),
                         behavior: HitTestBehavior.opaque,
                         onTap: () => _tapLane(lane),
-                        child: Container(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 160),
                           decoration: BoxDecoration(
-                            color: lane.isEven
-                                ? Colors.white
-                                : const Color(0xFFF8F6FC),
+                            color: _errorLane == lane
+                                ? const Color(0xFFFFCDD2)
+                                : lane.isEven
+                                    ? Colors.white
+                                    : const Color(0xFFFAF8FC),
                             border: const Border(
-                                right: BorderSide(
-                                    color: Color(0xFFDDD5EA), width: 2)),
+                              right: BorderSide(
+                                  color: Color(0xFFD8D2DF), width: 1.5),
+                            ),
                           ),
                         ),
                       ),
@@ -141,71 +197,94 @@ class _PianoTilesGameScreenState extends State<PianoTilesGameScreen>
                   ),
                 ),
                 Positioned(
-                  top: constraints.maxHeight * PianoTilesEngine.hitLine,
+                  top: constraints.maxHeight * PianoTilesEngine.hitZoneStart,
                   left: 0,
                   right: 0,
-                  child: Container(height: 5, color: const Color(0xFFFFC857)),
-                ),
-                if (engine.tile case final tile?)
-                  AnimatedPositioned(
-                    key: ValueKey(tile.id),
-                    duration: Duration.zero,
-                    top: tile.y,
-                    left: tile.lane *
-                            constraints.maxWidth /
-                            PianoTilesEngine.laneCount +
-                        5,
-                    width:
-                        constraints.maxWidth / PianoTilesEngine.laneCount - 10,
-                    height: PianoTilesEngine.tileHeight,
-                    child: IgnorePointer(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF33265C),
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: const [
-                            BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 8,
-                                offset: Offset(0, 4))
+                  bottom: 0,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            const Color(0xFFFFC857).withValues(alpha: .05),
+                            const Color(0xFFFFC857).withValues(alpha: .18),
                           ],
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.music_note_rounded,
-                              color: Colors.white, size: 38),
                         ),
                       ),
                     ),
                   ),
-                if (_levelShown > 1 && engine.status == PianoGameStatus.playing)
+                ),
+                ...engine.tiles.map((tile) => Positioned(
+                      key: ValueKey(tile.id),
+                      top: tile.y,
+                      left: tile.lane * laneWidth + 5,
+                      width: laneWidth - 10,
+                      height: PianoTilesEngine.tileHeight,
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF251A45), Color(0xFF4D347D)],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: const Color(0xFF6F52A2), width: 2),
+                            boxShadow: const [
+                              BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 4))
+                            ],
+                          ),
+                          child: const Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: EdgeInsets.only(bottom: 14),
+                              child: Icon(Icons.music_note_rounded,
+                                  color: Color(0xFFFFD978), size: 30),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )),
+                if (engine.status == PianoGameStatus.playing)
                   Positioned(
-                    top: 22,
+                    top: 14,
                     left: 0,
                     right: 0,
                     child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 22, vertical: 10),
-                        decoration: BoxDecoration(
-                            color: const Color(0xFFFFC857),
-                            borderRadius: BorderRadius.circular(24)),
-                        child: Text('¡Nivel $_levelShown! Más rápido',
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 180),
+                        child: _showLevel
+                            ? _Pill(
+                                key: ValueKey(engine.level),
+                                text: '¡Nivel ${engine.level}! Más rápido ⚡',
+                                color: const Color(0xFFFFC857))
+                            : engine.combo >= 3
+                                ? _Pill(
+                                    key: ValueKey(engine.combo),
+                                    text: 'Combo ×${engine.combo}',
+                                    color: const Color(0xFFB9F6CA))
+                                : const SizedBox.shrink(),
                       ),
                     ),
                   ),
                 if (engine.status != PianoGameStatus.playing)
                   _Overlay(
-                    gameOver: engine.status == PianoGameStatus.gameOver,
+                    complete: engine.status == PianoGameStatus.songComplete,
                     score: engine.score,
                     best: engine.bestScore,
-                    level: engine.level,
+                    accuracy: engine.accuracy,
+                    bestCombo: engine.bestCombo,
                     onStart: _start,
                   ),
-              ],
-            );
-          }),
+              ]);
+            }),
+          ),
         ),
       );
 }
@@ -224,64 +303,97 @@ class _Counter extends StatelessWidget {
                   const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
           Text(value,
               style:
-                  const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
         ]),
       );
 }
 
+class _Pill extends StatelessWidget {
+  const _Pill({super.key, required this.text, required this.color});
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
+        ),
+        child: Text(text,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+      );
+}
+
 class _Overlay extends StatelessWidget {
-  const _Overlay(
-      {required this.gameOver,
-      required this.score,
-      required this.best,
-      required this.level,
-      required this.onStart});
-  final bool gameOver;
+  const _Overlay({
+    required this.complete,
+    required this.score,
+    required this.best,
+    required this.accuracy,
+    required this.bestCombo,
+    required this.onStart,
+  });
+
+  final bool complete;
   final int score;
   final int best;
-  final int level;
+  final double accuracy;
+  final int bestCombo;
   final VoidCallback onStart;
 
   @override
   Widget build(BuildContext context) => Positioned.fill(
         child: ColoredBox(
-          color: const Color(0xD933265C),
+          color: const Color(0xDD251A45),
           child: Center(
             child: Container(
               margin: const EdgeInsets.all(28),
               padding: const EdgeInsets.all(28),
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 430),
               decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(32)),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+              ),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(gameOver ? '🎵 ¡Buen intento!' : '🎹',
+                Text(complete ? '🎉 ¡Canción completa!' : '🎹 Modo acompañado',
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
-                        fontSize: 36, fontWeight: FontWeight.w900)),
+                        fontSize: 31, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 12),
-                if (gameOver) ...[
+                if (complete) ...[
                   Text('$score puntos',
                       key: const Key('piano-final-score'),
                       style: const TextStyle(
                           fontSize: 38, fontWeight: FontWeight.w900)),
-                  Text('Nivel $level  •  Récord $best',
-                      style: const TextStyle(fontSize: 19)),
-                ] else
-                  const Text(
-                      'Tocá la baldosa oscura cuando llegue a la línea amarilla.',
+                  Text(
+                      '${(accuracy * 100).round()}% de aciertos  •  Combo $bestCombo',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 21)),
-                const SizedBox(height: 24),
+                      style: const TextStyle(fontSize: 18)),
+                  Text('Récord $best', style: const TextStyle(fontSize: 18)),
+                ] else ...[
+                  const Text(
+                    'Tocá las baldosas oscuras al ritmo de la música. Los errores no cortan la canción.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 20, height: 1.25),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text('3 niveles • cada vez más rápido',
+                      style: TextStyle(
+                          color: Color(0xFF6F52A2),
+                          fontWeight: FontWeight.bold)),
+                ],
+                const SizedBox(height: 22),
                 FilledButton.icon(
                   key: const Key('piano-start'),
                   onPressed: onStart,
-                  icon: Icon(
-                      gameOver
-                          ? Icons.replay_rounded
-                          : Icons.play_arrow_rounded,
-                      size: 34),
-                  label: Text(gameOver ? 'Otra vez' : 'Jugar',
+                  icon: Icon(complete
+                      ? Icons.replay_rounded
+                      : Icons.play_arrow_rounded),
+                  label: Text(complete ? 'Tocar otra vez' : 'Empezar',
                       style: const TextStyle(
-                          fontSize: 25, fontWeight: FontWeight.bold)),
+                          fontSize: 23, fontWeight: FontWeight.bold)),
                 ),
               ]),
             ),
