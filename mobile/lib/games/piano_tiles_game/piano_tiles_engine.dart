@@ -11,70 +11,154 @@ class PianoTile {
       PianoTile(id: id, lane: lane, y: y ?? this.y);
 }
 
-enum PianoGameStatus { ready, playing, gameOver }
+enum PianoGameStatus { ready, playing, songComplete }
+
+class PianoTickResult {
+  const PianoTickResult({
+    this.missed = 0,
+    this.levelAdvanced = false,
+    this.songCompleted = false,
+  });
+
+  final int missed;
+  final bool levelAdvanced;
+  final bool songCompleted;
+}
 
 class PianoTilesEngine {
   PianoTilesEngine({math.Random? random}) : _random = random ?? math.Random();
 
   static const laneCount = 4;
-  static const pointsPerLevel = 10;
-  static const tileHeight = 126.0;
-  static const hitLine = 0.76;
-  static const hitTolerance = 0.13;
+  static const tileHeight = 154.0;
+  static const tilesPerLevel = 24;
+  static const levelCount = 3;
+  static const songTileCount = tilesPerLevel * levelCount;
+  static const hitZoneStart = .47;
+  static const initialTileCount = 7;
 
   final math.Random _random;
+  final List<PianoTile> tiles = [];
   PianoGameStatus status = PianoGameStatus.ready;
-  PianoTile? tile;
   int score = 0;
   int bestScore = 0;
+  int combo = 0;
+  int bestCombo = 0;
+  int hits = 0;
+  int misses = 0;
+  int mistakes = 0;
+  int processed = 0;
+  int _spawned = 0;
   int _nextId = 0;
+  int? _lastLane;
+  double _spacing = 185;
 
-  int get level => score ~/ pointsPerLevel + 1;
-  double get speed => 0.28 + (level - 1) * 0.045;
+  int get level => math.min(processed ~/ tilesPerLevel + 1, levelCount);
+  double get progress => processed / songTileCount;
+  double get accuracy => processed == 0 ? 1 : hits / processed;
+  double get speed => .235 + (level - 1) * .045;
 
-  void start({int previousBest = 0}) {
+  void start(double boardHeight, {int previousBest = 0}) {
     score = 0;
     bestScore = previousBest;
+    combo = 0;
+    bestCombo = 0;
+    hits = 0;
+    misses = 0;
+    mistakes = 0;
+    processed = 0;
+    _spawned = 0;
+    _nextId = 0;
+    _lastLane = null;
+    _spacing = math.max(tileHeight + 30, boardHeight * .13);
+    tiles.clear();
     status = PianoGameStatus.playing;
-    tile = _newTile(-tileHeight);
+
+    final firstY = boardHeight * .68 - tileHeight / 2;
+    for (var index = 0;
+        index < initialTileCount && _spawned < songTileCount;
+        index++) {
+      _spawn(firstY - index * _spacing);
+    }
   }
 
-  /// Advances by a fraction of the board height per second.
-  bool tick(double elapsedSeconds, double boardHeight) {
-    final current = tile;
-    if (status != PianoGameStatus.playing || current == null) return false;
-    final nextY = current.y + boardHeight * speed * elapsedSeconds;
-    tile = current.copyWith(y: nextY);
-    if (nextY > boardHeight * (hitLine + hitTolerance)) {
-      miss();
-      return true;
+  PianoTickResult tick(double elapsedSeconds, double boardHeight) {
+    if (status != PianoGameStatus.playing) return const PianoTickResult();
+    final previousLevel = level;
+    final movement = boardHeight * speed * elapsedSeconds;
+    for (var index = 0; index < tiles.length; index++) {
+      tiles[index] = tiles[index].copyWith(y: tiles[index].y + movement);
     }
-    return false;
+
+    var missedNow = 0;
+    while (tiles.isNotEmpty && tiles.first.y > boardHeight) {
+      tiles.removeAt(0);
+      misses++;
+      processed++;
+      combo = 0;
+      missedNow++;
+      _fillQueue();
+    }
+    final complete = _completeIfFinished();
+    return PianoTickResult(
+      missed: missedNow,
+      levelAdvanced: !complete && level > previousLevel,
+      songCompleted: complete,
+    );
   }
 
   bool tap(int lane, double boardHeight) {
-    final current = tile;
-    if (status != PianoGameStatus.playing || current == null) return false;
-    final center = current.y + tileHeight / 2;
-    final target = boardHeight * hitLine;
-    if (lane != current.lane ||
-        (center - target).abs() > boardHeight * hitTolerance) {
-      miss();
+    if (status != PianoGameStatus.playing) return false;
+    final index = tiles.indexWhere((tile) =>
+        tile.lane == lane &&
+        tile.y + tileHeight >= boardHeight * hitZoneStart &&
+        tile.y < boardHeight);
+    if (index < 0) {
+      mistakes++;
+      combo = 0;
       return false;
     }
-    score++;
-    if (score > bestScore) bestScore = score;
-    tile = _newTile(-tileHeight);
+
+    tiles.removeAt(index);
+    hits++;
+    processed++;
+    combo++;
+    bestCombo = math.max(bestCombo, combo);
+    score += 10 + math.min(combo - 1, 10);
+    bestScore = math.max(bestScore, score);
+    _fillQueue();
+    _completeIfFinished();
     return true;
   }
 
-  void miss() {
-    if (status == PianoGameStatus.playing) status = PianoGameStatus.gameOver;
+  bool registerMistake() {
+    if (status != PianoGameStatus.playing) return false;
+    mistakes++;
+    combo = 0;
+    return true;
   }
 
-  PianoTile _newTile(double y) => PianoTile(
-        id: _nextId++,
-        lane: _random.nextInt(laneCount),
-        y: y,
-      );
+  bool _completeIfFinished() {
+    if (processed < songTileCount) return false;
+    status = PianoGameStatus.songComplete;
+    tiles.clear();
+    return true;
+  }
+
+  void _fillQueue() {
+    while (tiles.length < initialTileCount && _spawned < songTileCount) {
+      final highestY = tiles.isEmpty
+          ? -tileHeight
+          : tiles.map((tile) => tile.y).reduce(math.min);
+      _spawn(highestY - _spacing);
+    }
+  }
+
+  void _spawn(double y) {
+    var lane = _random.nextInt(laneCount);
+    if (lane == _lastLane) lane = (lane + 1 + _random.nextInt(3)) % laneCount;
+    _lastLane = lane;
+    tiles.add(PianoTile(id: _nextId++, lane: lane, y: y));
+    tiles.sort((a, b) => b.y.compareTo(a.y));
+    _spawned++;
+  }
 }
