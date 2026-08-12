@@ -3,16 +3,40 @@ import '../../core/services/app_services.dart';
 import '../../games/game_definition.dart';
 import '../../games/game_registry.dart';
 import '../parent/parent_gate.dart';
+import '../../core/updates/update_dialog.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.services});
   final AppServices services;
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+  }
+
+  Future<void> _checkForUpdate() async {
+    try {
+      final info = await widget.services.updates.check();
+      if (info != null && mounted) {
+        await showUpdateDialog(context, widget.services.updates, info);
+      }
+    } catch (_) {
+      // Updates are best-effort; offline play must remain available.
+    }
+  }
+
   void _open(BuildContext context, GameDefinition game) {
-    services.analytics.track('game_opened', gameId: game.id);
+    widget.services.analytics.track('game_opened', gameId: game.id);
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => game.builder(services)))
-        .then((_) => services.analytics.track('game_closed', gameId: game.id));
+        .push(MaterialPageRoute(builder: (_) => game.builder(widget.services)))
+        .then((_) =>
+            widget.services.analytics.track('game_closed', gameId: game.id));
   }
 
   @override
@@ -20,7 +44,7 @@ class HomeScreen extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           title: const Text('¡A jugar! 🌈'),
-          actions: [ParentGateButton(services: services)],
+          actions: [ParentGateButton(services: widget.services)],
         ),
         body: SafeArea(
           child: LayoutBuilder(builder: (context, constraints) {

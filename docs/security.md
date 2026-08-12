@@ -24,3 +24,17 @@
 El desafío del área adulta es una barrera de UX, no autenticación de seguridad.
 Las definiciones de infraestructura no implican que estos controles operativos ya
 estén desplegados.
+
+## Actualizador Android
+
+La línea de development declara `REQUEST_INSTALL_PACKAGES` para abrir el
+instalador oficial después de una acción del adulto. No concede instalación
+silenciosa: Android conserva el permiso por fuente, Play Protect y la
+confirmación final. El `applicationId`, la firma y el `versionCode` se validan en
+cada publicación.
+
+HTTP y distribución desde una IP LAN se permiten únicamente para desarrollo en
+una red privada confiable. Staging y producción requieren HTTPS, almacenamiento
+duradero, firma de release protegida y validación criptográfica del artefacto.
+Consulte [Actualizaciones Android](android-updates.md) y
+[Google Play](google-play.md).

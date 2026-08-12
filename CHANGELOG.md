@@ -1,5 +1,21 @@
 # Historial de versiones
 
+## v0.1.3 — Identidad GenGames y actualización dentro de la app
+
+- El nombre visible del producto pasa a ser **GenGames** en Android, Flutter y
+  web, conservando el identificador Android heredado para mantener los datos.
+- La aplicación detecta nuevas versiones al abrir y desde el área para adultos.
+- Descarga el APK ARM64 con progreso y abre el instalador oficial de Android.
+- El backend publica metadata, tamaño y endpoint de descarga de la versión.
+- Se documenta el procedimiento obligatorio de publicación para que toda nueva
+  versión del cliente pueda instalarse desde la aplicación.
+
+## v0.1.2 — Actualizador Android inicial
+
+- Primera versión con `UpdateService`, permiso de instalación por fuente y
+  `FileProvider` para actualizar sin USB dentro de la red local.
+- Validación en emulador Android y teléfono físico mediante APK ARM64.
+
 ## v0.1.1 — Contexto y documentación operativa
 
 Esta actualización compatible convierte la documentación en una fuente de verdad

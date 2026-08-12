@@ -28,6 +28,16 @@ class ApiClient {
     }
     return jsonDecode(response.body) as List<Object?>;
   }
+
+  Future<Map<String, Object?>> getMap(String path) async {
+    final response = await client
+        .get(Uri.parse('$baseUrl$path'))
+        .timeout(const Duration(seconds: 12));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(response.statusCode);
+    }
+    return jsonDecode(response.body) as Map<String, Object?>;
+  }
 }
 
 class ApiException implements Exception {

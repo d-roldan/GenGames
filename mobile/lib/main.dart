@@ -8,5 +8,5 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   configureDatabaseFactory();
   final services = await AppServices.create(AppConfig.fromEnvironment());
-  runApp(KidsGameApp(services: services));
+  runApp(GenGamesApp(services: services));
 }

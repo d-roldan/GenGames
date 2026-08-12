@@ -36,7 +36,7 @@ remoto pueden fallar sin impedir jugar.
 
 Los juegos se registran mediante `GameDefinition` y no dependen entre sí. Los
 servicios compartidos son configuración, audio, almacenamiento, conectividad,
-analítica, sincronización, contenido y acceso HTTP.
+analítica, sincronización, contenido, actualizaciones Android y acceso HTTP.
 
 SQLite guarda datos en disco en plataformas nativas. En Chrome se usa
 `sqflite_common_ffi_web` sin SharedWorker, con SQLite WebAssembly e IndexedDB;
@@ -51,12 +51,26 @@ La API pública vive bajo `/api/v1`. Los eventos son idempotentes mediante
 administrativa vive bajo `/api/v1/admin/*`, usa Bearer JWT y no comparte identidad
 con el niño. Toda modificación de esquema se realiza mediante Alembic.
 
+## Distribución y actualización Android
+
+`UpdateService` consulta la política de versiones del backend. El endpoint de
+versión entrega metadata y una URL relativa; el backend sirve el APK ARM64
+publicado. Flutter descarga el archivo temporalmente y un canal nativo Android
+usa `FileProvider` para abrir el instalador oficial. La comprobación es
+best-effort y no altera el principio offline-first.
+
+Firma, `applicationId` y aumento de `versionCode` forman parte de la identidad
+de actualización y deben permanecer estables. Consulte
+[Actualizaciones Android](android-updates.md) para el flujo completo.
+
 ## Decisiones vigentes
 
-- Repositorio `GenGames`; producto visible `KidsGame`.
+- Repositorio y producto visible `GenGames`.
 - Flutter, FastAPI, PostgreSQL, Next.js, Docker Compose y Caddy.
 - UUID aleatorio por instalación; sin publicidad ni SDK externo de tracking.
 - Software mediante releases de la aplicación; packs y configuración mediante
   el backend propio.
+- En development, las releases Android se distribuyen por el backend y se
+  instalan desde la propia aplicación con confirmación del sistema.
 - SemVer desde `0.1.0`; Git/GitHub es la fuente de verdad.
 - Development, staging y production aislados por configuración y datos.

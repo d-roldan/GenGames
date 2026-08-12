@@ -15,7 +15,8 @@ está en `http://localhost:8000/docs`.
 | `GET /content/manifest` | Lista packs habilitados y sus checksums. |
 | `GET /content/{id}` | Descarga el archivo de un pack. |
 | `GET /config` | Devuelve configuración remota por clave. |
-| `GET /version?platform=android` | Devuelve versión actual, mínima y última. |
+| `GET /version?platform=android` | Devuelve versión actual, mínima, última, URL y tamaño del APK cuando está publicado. |
+| `GET /app/android/download` | Sirve el APK ARM64 actual para la actualización dentro de la app. |
 
 Los eventos requieren una instalación previamente registrada. Cada
 `client_event_id` es único: reenviar el mismo UUID devuelve aceptación sin crear
@@ -29,3 +30,7 @@ un duplicado.
 
 Los errores usan respuestas HTTP; el cliente infantil los captura y conserva su
 estado local sin mostrarlos al niño.
+
+La versión anunciada debe actualizarse únicamente después de publicar y
+verificar el APK correspondiente. El procedimiento está definido en
+[Actualizaciones Android](android-updates.md).
