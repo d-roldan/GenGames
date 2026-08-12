@@ -1,5 +1,13 @@
 # Historial de versiones
 
+## v0.2.1 — Piano Tiles renovado
+
+- Flujo continuo con varias baldosas simultáneas, tres secciones y velocidad creciente.
+- Nueva pista musical original y offline que acompaña toda la partida.
+- Notas de piano polifónicas en cada acierto, sin interrumpir la música de fondo.
+- Modo acompañado: los errores y las baldosas perdidas rompen el combo, pero no terminan la canción.
+- Barra de progreso, combo, precisión, animaciones de nivel y resumen final mejorado.
+
 ## v0.2.0 — Piano Tiles
 
 - Nuevo juego **Piano Tiles** con cuatro carriles y controles táctiles grandes.

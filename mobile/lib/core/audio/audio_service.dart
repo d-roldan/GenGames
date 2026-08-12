@@ -4,9 +4,16 @@ import 'package:audioplayers/audioplayers.dart';
 
 /// Produces short original PCM effects locally; no network or licensed audio.
 class AudioService {
-  AudioService({AudioPlayer? player}) : _player = player ?? AudioPlayer();
-  AudioService.silent() : _player = null;
-  final AudioPlayer? _player;
+  AudioService({AudioPlayer? player})
+      : _effects = [player ?? AudioPlayer(), AudioPlayer(), AudioPlayer()],
+        _music = AudioPlayer();
+  AudioService.silent()
+      : _effects = const [],
+        _music = null;
+
+  final List<AudioPlayer> _effects;
+  final AudioPlayer? _music;
+  int _nextEffect = 0;
 
   Future<void> playCat(String interaction) => _play(
         interaction == 'bed'
@@ -51,18 +58,36 @@ class AudioService {
       392.00,
       329.63,
     ];
-    return _play(melody[noteIndex % melody.length], .28, wobble: 1.5);
+    return _play(melody[noteIndex % melody.length], .48,
+        wobble: 1.5, volume: 1);
   }
 
-  Future<void> playPianoMiss() => _play(92, .55, wobble: 22);
+  Future<void> startPianoMusic() async {
+    final player = _music;
+    if (player == null) return;
+    await player.stop();
+    await player.setReleaseMode(ReleaseMode.loop);
+    await player.setVolume(.58);
+    await player.setPlaybackRate(1);
+    await player.play(AssetSource('music/piano_tiles_theme.wav'));
+  }
+
+  Future<void> setPianoLevel(int level) async {
+    final player = _music;
+    if (player == null) return;
+    await player.setPlaybackRate(1 + (level - 1) * .09);
+  }
+
+  Future<void> stopPianoMusic() async => _music?.stop();
 
   Future<void> _play(double frequency, double seconds,
-      {double wobble = 0}) async {
-    final player = _player;
-    if (player == null) {
-      return;
-    }
-    await player.stop();
+      {double wobble = 0, double volume = .8}) async {
+    if (_effects.isEmpty) return;
+    final player = _effects[_nextEffect++ % _effects.length];
+    await player.setAudioContext(AudioContext(
+      android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
+    ));
+    await player.setVolume(volume);
     await player.play(BytesSource(_wave(frequency, seconds, wobble)));
   }
 
@@ -92,7 +117,8 @@ class AudioService {
     var phase = 0.0;
     for (var i = 0; i < samples; i++) {
       final time = i / sampleRate;
-      final envelope = math.sin(math.pi * i / samples);
+      final attack = math.min(1.0, time / .012);
+      final envelope = attack * math.exp(-4.2 * time / seconds);
       phase += 2 *
           math.pi *
           (frequency + math.sin(time * math.pi * 12) * wobble) /
@@ -104,5 +130,10 @@ class AudioService {
     return bytes.buffer.asUint8List();
   }
 
-  Future<void> dispose() async => _player?.dispose();
+  Future<void> dispose() async {
+    await _music?.dispose();
+    for (final player in _effects) {
+      await player.dispose();
+    }
+  }
 }
