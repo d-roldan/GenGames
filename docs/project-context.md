@@ -10,7 +10,7 @@ personas y asistentes de IA; no reemplaza la documentación técnica enlazada.
 - **Producto visible:** GenGames.
 - **Repositorio remoto:** <https://github.com/d-roldan/GenGames>.
 - **Versión de desarrollo publicada:** `v0.3.1`
-  (`mobile/pubspec.yaml`: `0.3.1+8`).
+  (`mobile/pubspec.yaml`: `0.3.1+4008`).
 - **Público principal:** niños de aproximadamente 3 años y sus adultos
   responsables.
 
