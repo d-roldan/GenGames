@@ -14,7 +14,7 @@ def seed() -> None:
                 db.add(Game(slug=slug, name=name, enabled=True, version=1, config={}))
         for platform in ("android", "windows"):
             if not db.scalar(select(AppVersion).where(AppVersion.platform == platform)):
-                db.add(AppVersion(platform=platform, version="0.3.0", minimum_supported_version="0.1.0", latest_version="0.3.0"))
+                db.add(AppVersion(platform=platform, version="0.3.1", minimum_supported_version="0.1.0", latest_version="0.3.1"))
         if not db.scalar(select(RemoteConfig).where(RemoteConfig.key == "sync")):
             db.add(RemoteConfig(key="sync", value={"batch_size": 50, "interval_seconds": 30}))
         db.commit()
