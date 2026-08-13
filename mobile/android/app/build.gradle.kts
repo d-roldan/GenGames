@@ -3,6 +3,7 @@ plugins { id("com.android.application"); id("kotlin-android"); id("dev.flutter.f
 android {
     namespace = "com.kidsgame.app"
     compileSdk = flutter.compileSdkVersion
+    buildToolsVersion = "36.0.0"
     ndkVersion = flutter.ndkVersion
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = JavaVersion.VERSION_17.toString() }

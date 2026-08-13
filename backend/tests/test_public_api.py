@@ -5,7 +5,7 @@ from app.core.config import settings
 def test_health_and_defaults(client):
     assert client.get("/api/v1/health").json()["status"] == "ok"
     assert len(client.get("/api/v1/games").json()) == 4
-    assert client.get("/api/v1/version?platform=android").json()["latest_version"] == "0.3.0"
+    assert client.get("/api/v1/version?platform=android").json()["latest_version"] == "0.3.1"
 
 
 def test_android_download_is_absent_when_no_release_is_published(client, tmp_path):

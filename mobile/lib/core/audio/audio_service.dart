@@ -2,7 +2,16 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 
-/// Produces short original PCM effects locally; no network or licensed audio.
+const animalSoundAssets = <String, String>{
+  'dog': 'sounds/dog.ogg',
+  'cat': 'sounds/cat.ogg',
+  'cow': 'sounds/cow.ogg',
+  'horse': 'sounds/horse.ogg',
+  'duck': 'sounds/duck.ogg',
+  'sheep': 'sounds/sheep.ogg',
+};
+
+/// Plays packaged audio and produces the original PCM effects used elsewhere.
 class AudioService {
   AudioService({AudioPlayer? player})
       : _effects = [player ?? AudioPlayer(), AudioPlayer(), AudioPlayer()],
@@ -26,16 +35,9 @@ class AudioService {
       );
 
   Future<void> playAnimal(String animal) {
-    final settings = switch (animal) {
-      'dog' => (190.0, .24, 32.0),
-      'cat' => (540.0, .34, 110.0),
-      'cow' => (105.0, .72, 14.0),
-      'horse' => (260.0, .42, 72.0),
-      'duck' => (720.0, .22, 180.0),
-      'sheep' => (330.0, .55, 45.0),
-      _ => (440.0, .25, 10.0),
-    };
-    return _play(settings.$1, settings.$2, wobble: settings.$3);
+    final asset = animalSoundAssets[animal];
+    if (asset == null) return Future.value();
+    return _playAsset(asset);
   }
 
   /// Plays one note of the original Piano Tiles melody.
@@ -73,6 +75,16 @@ class AudioService {
   }
 
   Future<void> stopPianoMusic() async => _music?.stop();
+
+  Future<void> _playAsset(String asset) async {
+    if (_effects.isEmpty) return;
+    final player = _effects[_nextEffect++ % _effects.length];
+    await player.setAudioContext(AudioContext(
+      android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
+    ));
+    await player.setVolume(.9);
+    await player.play(AssetSource(asset));
+  }
 
   Future<void> _play(double frequency, double seconds,
       {double wobble = 0, double volume = .8}) async {
