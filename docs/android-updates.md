@@ -41,7 +41,11 @@ cambio del cliente que deba verse en ese teléfono requiere un APK con versión 
 
 Para una publicación `X.Y.Z`:
 
-1. `mobile/pubspec.yaml`: `version: X.Y.Z+BUILD`, incrementando siempre `BUILD`.
+1. `mobile/pubspec.yaml`: `version: X.Y.Z+BUILD`, usando un `BUILD` mayor que el
+   `versionCode` real de toda instalación que deba actualizarse. Algunas
+   compilaciones ARM64 históricas aplicaron un offset por ABI (por ejemplo,
+   `4007` aunque el build fuente fuera `7`), por lo que no alcanza con mirar la
+   versión anterior de `pubspec.yaml`.
 2. `currentAppVersion` en
    `mobile/lib/core/config/app_version.dart`.
 3. Valor inicial y fallback de Android en el backend.
@@ -69,6 +73,8 @@ artefacto anterior bajo una versión nueva.
    ```
 
 2. Incrementar SemVer y build en las fuentes indicadas arriba.
+   Antes de fijar el build, consultar `dumpsys package com.kidsgame.app.dev` en
+   el teléfono anterior y confirmar que el nuevo `versionCode` será superior.
 3. Detectar la IP LAN de la PC y compilar para ARM64:
 
    ```powershell

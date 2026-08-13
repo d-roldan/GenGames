@@ -8,6 +8,8 @@
   conexión.
 - Se documentan la procedencia, autoría y licencia de cada grabación.
 - Una prueba automatizada verifica que cada animal tenga un asset Ogg válido.
+- El build Android `4008` actualiza correctamente instalaciones ARM64 antiguas
+  que conservan el offset de ABI en su `versionCode`.
 
 ## v0.3.0 — Piano Tiles rítmico
 
